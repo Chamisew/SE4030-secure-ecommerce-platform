@@ -67,6 +67,15 @@ public class OrderServiceImpl implements OrderService {
             Product p = productRepository.findById(ci.getProductId())
                     .orElseThrow(() -> new ProductNotFoundException("Product not found with this id : " + ci.getProductId()));
 
+            // V08 Fix: Validate stock availability before order creation
+            if (p.getStock() < ci.getQuantity()) {
+                throw new ProductOutOfStockException("Insufficient stock for product: " + p.getName());
+            }
+
+            // V08 Fix: Decrement stock when order is placed
+            p.setStock(p.getStock() - ci.getQuantity());
+            productRepository.save(p);
+
             BigDecimal subtotal = p.getPrice().multiply(BigDecimal.valueOf(ci.getQuantity()));
             total = total.add(subtotal);
 
@@ -216,6 +225,7 @@ public class OrderServiceImpl implements OrderService {
         for (OrderItem item : order.getItems()) {
             Product product = item.getProduct();
             product.setStock(product.getStock() + item.getQuantity());
+            productRepository.save(product);
         }
 
         order.setStatus(OrderStatus.CANCELLED);

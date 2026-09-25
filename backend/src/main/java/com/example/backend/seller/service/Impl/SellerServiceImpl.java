@@ -72,13 +72,42 @@ public class SellerServiceImpl implements SellerService {
 
         String documentUrl = null;
         if (document != null && !document.isEmpty()) {
+            // V07 Fix: File size limit (max 5MB)
+            if (document.getSize() > 5 * 1024 * 1024) {
+                throw new IllegalArgumentException("Document size exceeds maximum allowed limit (5MB)");
+            }
+
+            // V07 Fix: Strict MIME type whitelist (only PDF, JPEG, PNG allowed)
+            String contentType = document.getContentType();
+            List<String> allowedMimeTypes = List.of(
+                    "application/pdf",
+                    "image/jpeg",
+                    "image/png"
+            );
+            if (contentType == null || !allowedMimeTypes.contains(contentType.toLowerCase())) {
+                throw new IllegalArgumentException("Invalid file type. Only PDF, JPEG, and PNG documents are allowed");
+            }
+
+            // V07 Fix: Strict file extension validation
+            String originalFilename = document.getOriginalFilename();
+            if (originalFilename == null) {
+                throw new IllegalArgumentException("Invalid file name");
+            }
+            String lower = originalFilename.toLowerCase();
+            if (!lower.endsWith(".pdf") && !lower.endsWith(".jpg") && !lower.endsWith(".jpeg") && !lower.endsWith(".png")) {
+                throw new IllegalArgumentException("Invalid file extension. Only .pdf, .jpg, .jpeg, and .png are allowed");
+            }
+
+            // V07 Fix: Use specific resource_type instead of dangerous "auto"
+            String resourceType = lower.endsWith(".pdf") ? "raw" : "image";
+
             Map upload = cloudinary.uploader().upload(
                     document.getBytes(),
                     ObjectUtils.asMap(
                             "folder", "SellerRequests",
                             "public_id", userEmail + "_" + UUID.randomUUID(),
                             "overwrite", true,
-                            "resource_type", "auto"
+                            "resource_type", resourceType
                     )
             );
             documentUrl = (String) upload.get("secure_url");

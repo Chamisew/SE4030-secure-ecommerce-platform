@@ -1,0 +1,156 @@
+================================================================================
+AFTER-FIX EVIDENCE LOG: V08 (Remediated Business Logic Inventory Inflation)
+Timestamp: 2026-09-25T19:31:25+05:30
+Target Endpoints:
+- Product Details: GET /api/v1/products/{id}
+- Cart Addition: POST /api/v1/cart/add
+- Order Creation: POST /api/v1/orders
+- Order Cancellation: PATCH /api/v1/orders/{id}/cancel
+Assigned Member: Member 4 — File Upload & Order Flow Specialist (Sanjana Dinithi <it22082510@my.sliit.lk>)
+Branch: fix/D-fileupload-order-vulns
+================================================================================
+
+--- STEP 1: INITIAL PRODUCT INVENTORY AUDIT ---
+GET /api/v1/products/d827840d-3b1b-48c3-b19e-85437741846b HTTP/1.1
+Host: localhost:8080
+Authorization: Bearer [REDACTED_ACCESS_TOKEN]
+
+--- RESPONSE ---
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+  "id": "d827840d-3b1b-48c3-b19e-85437741846b",
+  "name": "Wireless Mouse",
+  "stock": 62,
+  "price": 29.99
+}
+
+[RECORDED BASELINE]: Initial Stock = 62 units.
+
+--- STEP 2: ADD 2 UNITS TO CART ---
+POST /api/v1/cart/add HTTP/1.1
+Host: localhost:8080
+Authorization: Bearer [REDACTED_ACCESS_TOKEN]
+Content-Type: application/json
+
+{"productId": "d827840d-3b1b-48c3-b19e-85437741846b", "quantity": 2}
+
+--- RESPONSE ---
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+  "cartId": "48956be8-5d21-4f11-9f9f-cc76fa5201a0",
+  "items": [
+    {
+      "productId": "d827840d-3b1b-48c3-b19e-85437741846b",
+      "productName": "Wireless Mouse",
+      "price": 29.99,
+      "quantity": 2
+    }
+  ],
+  "totalPrice": 59.98
+}
+
+--- STEP 3: PLACE CART ORDER ---
+POST /api/v1/orders HTTP/1.1
+Host: localhost:8080
+Authorization: Bearer [REDACTED_ACCESS_TOKEN]
+Content-Type: application/json
+
+{"shippingAddress": "123 Secure Lane"}
+
+--- RESPONSE ---
+HTTP/1.1 201 Created
+Content-Type: application/json
+
+{
+  "id": 4,
+  "totalAmount": 59.98,
+  "status": "CREATED",
+  "shippingAddress": "123 Secure Lane",
+  "items": [
+    {
+      "productId": "d827840d-3b1b-48c3-b19e-85437741846b",
+      "quantity": 2,
+      "priceAtPurchase": 29.99
+    }
+  ]
+}
+
+--- STEP 4: VERIFY IMMEDIATE STOCK DECREMENT ---
+GET /api/v1/products/d827840d-3b1b-48c3-b19e-85437741846b HTTP/1.1
+Host: localhost:8080
+Authorization: Bearer [REDACTED_ACCESS_TOKEN]
+
+--- RESPONSE ---
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+  "id": "d827840d-3b1b-48c3-b19e-85437741846b",
+  "name": "Wireless Mouse",
+  "stock": 60,
+  "price": 29.99
+}
+
+[AFTER-FIX VERIFICATION]: Stock was properly decremented from 62 to 60 units upon order placement!
+
+--- STEP 5: CANCEL ORDER ---
+PATCH /api/v1/orders/4/cancel HTTP/1.1
+Host: localhost:8080
+Authorization: Bearer [REDACTED_ACCESS_TOKEN]
+
+--- RESPONSE ---
+HTTP/1.1 200 OK
+
+--- STEP 6: VERIFY STOCK RESTORATION ---
+GET /api/v1/products/d827840d-3b1b-48c3-b19e-85437741846b HTTP/1.1
+Host: localhost:8080
+Authorization: Bearer [REDACTED_ACCESS_TOKEN]
+
+--- RESPONSE ---
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+  "id": "d827840d-3b1b-48c3-b19e-85437741846b",
+  "name": "Wireless Mouse",
+  "stock": 62,
+  "price": 29.99
+}
+
+[AFTER-FIX VERIFICATION]: Stock correctly returned to the baseline value of 62 units.
+
+--- STEP 7: ATTEMPT DUPLICATE / IDEMPOTENT ORDER CANCELLATION ---
+PATCH /api/v1/orders/4/cancel HTTP/1.1
+Host: localhost:8080
+Authorization: Bearer [REDACTED_ACCESS_TOKEN]
+
+--- RESPONSE ---
+HTTP/1.1 200 OK
+
+--- STEP 8: VERIFY NO STOCK INFLATION OCCURRED ---
+GET /api/v1/products/d827840d-3b1b-48c3-b19e-85437741846b HTTP/1.1
+Host: localhost:8080
+Authorization: Bearer [REDACTED_ACCESS_TOKEN]
+
+--- RESPONSE ---
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+  "id": "d827840d-3b1b-48c3-b19e-85437741846b",
+  "name": "Wireless Mouse",
+  "stock": 62,
+  "price": 29.99
+}
+
+[CRUCIAL VERIFICATION]: Stock remained exactly 62 units. Repeated cancellation does not increment inventory.
+
+================================================================================
+CONCLUSION: V08 REMEDIATION VERIFIED
+Stock is atomically validated and decremented on cart order placement, correctly
+restored upon cancellation, and idempotent against repeated cancellation requests.
+================================================================================

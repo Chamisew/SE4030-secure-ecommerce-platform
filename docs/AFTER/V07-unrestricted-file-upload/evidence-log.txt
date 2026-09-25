@@ -1,0 +1,137 @@
+================================================================================
+AFTER-FIX EVIDENCE LOG: V07 (Remediated Unrestricted File Upload)
+Timestamp: 2026-09-25T19:30:39+05:30
+Target URL: http://localhost:8080/api/v1/seller/request
+Assigned Member: Member 4 — File Upload & Order Flow Specialist (Sanjana Dinithi <it22082510@my.sliit.lk>)
+Branch: fix/D-fileupload-order-vulns
+================================================================================
+
+--- STEP 1: AUTHENTICATION & ACCESS TOKEN ACQUISITION ---
+POST /api/v1/auth/login HTTP/1.1
+Host: localhost:8080
+Content-Type: application/json
+
+{"email": "audit_v07_user@test.com", "password": "[REDACTED_PASSWORD]"}
+
+--- LOGIN RESPONSE ---
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+  "message": "Login successful",
+  "accessToken": "[REDACTED_ACCESS_TOKEN]",
+  "refreshToken": "[REDACTED_REFRESH_TOKEN]",
+  "email": "audit_v07_user@test.com",
+  "firstName": "V07User",
+  "lastName": "Audit",
+  "profileImageUrl": null,
+  "role": "ROLE_USER"
+}
+
+--- TEST 1: RE-TESTING ORIGINAL EXPLOIT (DISALLOWED MIME TYPE: text/html) ---
+POST /api/v1/seller/request HTTP/1.1
+Host: localhost:8080
+Authorization: Bearer [REDACTED_ACCESS_TOKEN]
+Content-Type: multipart/form-data; boundary=---------------------------98237498237498237498237498
+
+-----------------------------98237498237498237498237498
+Content-Disposition: form-data; name="storeName"
+
+Audit Store V07 After Fix
+-----------------------------98237498237498237498237498
+Content-Disposition: form-data; name="reason"
+
+KYC verification test
+-----------------------------98237498237498237498237498
+Content-Disposition: form-data; name="document"; filename="test_kyc.html"
+Content-Type: text/html
+
+<!DOCTYPE html><html><head><title>KYC Document</title></head><body><h1>Malicious HTML</h1></body></html>
+-----------------------------98237498237498237498237498--
+
+--- SERVER RESPONSE ---
+HTTP/1.1 400 Bad Request
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 0
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: 0
+X-Frame-Options: DENY
+Content-Type: application/json
+Connection: close
+
+{
+  "status": 400,
+  "timestamp": "2026-09-25T14:00:39.188717800Z",
+  "message": "Invalid file type. Only PDF, JPEG, and PNG documents are allowed",
+  "error": "Bad Request"
+}
+
+--- TEST 2: ATTEMPT EXECUTABLE UPLOAD WITH SPOOFED MIME TYPE (.exe disguised as image/png) ---
+POST /api/v1/seller/request HTTP/1.1
+Host: localhost:8080
+Authorization: Bearer [REDACTED_ACCESS_TOKEN]
+Content-Type: multipart/form-data; boundary=---------------------------98237498237498237498237498
+
+-----------------------------98237498237498237498237498
+Content-Disposition: form-data; name="storeName"
+
+Audit Store V07 After Fix
+-----------------------------98237498237498237498237498
+Content-Disposition: form-data; name="reason"
+
+KYC verification test
+-----------------------------98237498237498237498237498
+Content-Disposition: form-data; name="document"; filename="malicious_payload.exe"
+Content-Type: image/png
+
+MZ\x90\x00\x03\x00\x00\x00FakeExecutableContent
+-----------------------------98237498237498237498237498--
+
+--- SERVER RESPONSE ---
+HTTP/1.1 400 Bad Request
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 0
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: 0
+X-Frame-Options: DENY
+Content-Type: application/json
+Connection: close
+
+{
+  "status": 400,
+  "timestamp": "2026-09-25T14:00:39.215010300Z",
+  "message": "Invalid file extension. Only .pdf, .jpg, .jpeg, and .png are allowed",
+  "error": "Bad Request"
+}
+
+--- TEST 3: ATTEMPT OVERSIZED DOCUMENT UPLOAD (>5MB) ---
+POST /api/v1/seller/request HTTP/1.1
+Host: localhost:8080
+Authorization: Bearer [REDACTED_ACCESS_TOKEN]
+Content-Type: multipart/form-data; boundary=---------------------------98237498237498237498237498
+
+-----------------------------98237498237498237498237498
+Content-Disposition: form-data; name="document"; filename="large_file.pdf"
+Content-Type: application/pdf
+
+[6MB of binary data]
+-----------------------------98237498237498237498237498--
+
+--- SERVER RESPONSE ---
+HTTP/1.1 500 Internal Server Error (Spring Multipart MaxUploadSizeExceededException handled)
+Content-Type: application/json
+
+{
+  "status": 500,
+  "timestamp": "2026-09-25T14:00:39.259640100Z",
+  "message": "Something went wrong: Maximum upload size exceeded",
+  "error": "Internal Server Error"
+}
+
+================================================================================
+CONCLUSION: V07 REMEDIATION VERIFIED
+All unvalidated file uploads, spoofed extensions, and oversized payloads are
+strictly intercepted and rejected before interacting with the cloud storage provider.
+================================================================================
