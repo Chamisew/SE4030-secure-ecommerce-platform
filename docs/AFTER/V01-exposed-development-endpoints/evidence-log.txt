@@ -1,0 +1,71 @@
+================================================================================
+EVIDENCE LOG: V01 - Unauthenticated Development Endpoint (AFTER FIX)
+================================================================================
+Date: 2026-09-25
+Tester: Member 3 - Security Misconfiguration Specialist (it22106292@my.sliit.lk)
+Target: http://localhost:8080/api/v1/auth/dev/users
+Branch: fix/C-secmisconfig-vulns
+Verdict: REMEDIATED (EXPLOIT BLOCKED)
+
+--------------------------------------------------------------------------------
+1. Exploit Attempt: Anonymous GET Request to Extract User Credentials
+--------------------------------------------------------------------------------
+Command:
+curl.exe -s -i -X GET http://localhost:8080/api/v1/auth/dev/users
+
+Response Received:
+HTTP/1.1 401 Unauthorized
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 0
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: 0
+X-Frame-Options: DENY
+Content-Type: application/json
+Content-Length: 182
+Date: Fri, 25 Sep 2026 13:44:42 GMT
+
+{
+  "message": "Full authentication is required to access this resource",
+  "timestamp": "2026-09-25T13:44:42.726098400Z",
+  "error": "Unauthorized",
+  "path": "/api/v1/auth/dev/users",
+  "status": 401
+}
+
+Observation:
+Anonymous access is completely blocked. The wildcard permitAll match was removed.
+
+--------------------------------------------------------------------------------
+2. Exploit Attempt: Authenticated Non-Admin User (ROLE_USER)
+--------------------------------------------------------------------------------
+Request:
+GET /api/v1/auth/dev/users
+Authorization: Bearer <valid_ROLE_USER_token>
+
+Response Received:
+HTTP Status: 403 Forbidden
+Response Body:
+{"message": "Access Denied", "error": "Forbidden", "status": 403}
+
+Observation:
+Regular users cannot access the development endpoint; it is strictly restricted to ROLE_ADMIN.
+
+--------------------------------------------------------------------------------
+3. Data Protection Verification
+--------------------------------------------------------------------------------
+In AuthController.java:273-280, the endpoint was updated with password redaction logic:
+users.forEach(u -> {
+    u.setPassword("[REDACTED]");
+    u.setVerificationCode(null);
+    u.setResetPasswordToken(null);
+});
+Even if invoked by authorized administrators, raw BCrypt password hashes are never
+serialized into the client response body.
+
+Comparison with BEFORE:
+BEFORE Fix: Returned HTTP 200 OK dumping all user IDs, emails, roles, and BCrypt hashes.
+AFTER Fix:  Anonymous -> HTTP 401 Unauthorized.
+            ROLE_USER -> HTTP 403 Forbidden.
+            Credentials fully protected.
+================================================================================
