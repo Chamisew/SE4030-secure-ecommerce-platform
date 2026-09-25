@@ -282,4 +282,17 @@ public class AuthController {
         });
         return ResponseEntity.ok(users);
     }
+
+    /**
+     * OAuth2 Token Exchange endpoint for SPA / Mobile clients.
+     * Consumes an OAuth2ExchangeRequest (e.g. Google OIDC token/payload),
+     * provisions the user if absent, and returns an access & refresh token pair.
+     *
+     * @param request OAuth2ExchangeRequest containing provider, idToken, email, name, picture
+     * @return LoginResponse containing accessToken, refreshToken, and user metadata
+     */
+    @PostMapping("/oauth2/exchange")
+    public ResponseEntity<LoginResponse> oauth2Exchange(@Valid @RequestBody com.example.backend.auth.dto.Requests.OAuth2ExchangeRequest request) {
+        return ResponseEntity.ok(authService.oauth2Exchange(request));
+    }
 }
