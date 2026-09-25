@@ -13,4 +13,5 @@ public interface JWTservice {
     boolean validateToken(String token, UserDetails userDetails);
     String extractUsername(String token);
     List<String> extractRoles(String token);
+    String extractTokenType(String token);
 }

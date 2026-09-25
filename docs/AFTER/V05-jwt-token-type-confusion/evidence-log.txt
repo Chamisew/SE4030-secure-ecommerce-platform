@@ -1,0 +1,82 @@
+================================================================================
+EVIDENCE LOG: V05 - JWT Token-Type Confusion (AFTER FIX)
+================================================================================
+Date: 2026-09-25
+Tester: Member 2 - Sammani Wimalarathna (wimalarathnasammani@gmail.com)
+Target: http://localhost:8080/api/v1/orders
+Branch: fix/B-token-vulns
+Verdict: REMEDIATED (EXPLOIT BLOCKED)
+
+--------------------------------------------------------------------------------
+1. Authentication: Login & Token Issuance
+--------------------------------------------------------------------------------
+Request:
+POST /api/v1/auth/login
+User: afterfix_member1_v03@test.com
+Response Tokens Received:
+- accessToken (15 minutes validity)
+- refreshToken (7 days validity)
+
+--------------------------------------------------------------------------------
+2. Token Claims Inspection
+--------------------------------------------------------------------------------
+Access Token Payload Claims:
+{
+  "sub": "afterfix_member1_v03@test.com",
+  "role": "ROLE_USER",
+  "token_type": "access",
+  "roles": ["ROLE_USER"],
+  "iat": 1758807025,
+  "exp": 1758807925
+}
+Expiration delta: 900 seconds (15 minutes) -> CWE-613 remediated.
+
+Refresh Token Payload Claims:
+{
+  "sub": "afterfix_member1_v03@test.com",
+  "role": "ROLE_USER",
+  "token_type": "refresh",
+  "roles": ["ROLE_USER"],
+  "iat": 1758807025,
+  "exp": 1759411825
+}
+
+--------------------------------------------------------------------------------
+3. Exploit Attempt: Passing Refresh Token as Bearer Token on Protected Resource
+--------------------------------------------------------------------------------
+Request:
+GET /api/v1/orders
+Authorization: Bearer <refreshToken>
+
+Response Received:
+HTTP Status: 401 Unauthorized
+Response Body:
+{
+  "path": "/api/v1/orders",
+  "error": "Unauthorized",
+  "timestamp": "2026-09-25T13:30:25.088395Z",
+  "message": "Authentication failed: Invalid token type: refresh tokens cannot be used to authenticate API requests",
+  "status": 401
+}
+
+Result:
+Spring Security's JWTFilter verified the token signature, examined the `token_type`
+claim, determined it was `refresh` instead of `access`, and rejected the request
+with HTTP 401 Unauthorized.
+
+--------------------------------------------------------------------------------
+4. Baseline Verification: Legitimate Access Token Usage
+--------------------------------------------------------------------------------
+Request:
+GET /api/v1/orders
+Authorization: Bearer <accessToken>
+
+Response Received:
+HTTP Status: 200 OK
+Response Body: [] (Empty orders list for newly created user)
+
+Comparison with BEFORE:
+BEFORE Fix: Server accepted refreshToken on /api/v1/orders with HTTP 200 OK.
+AFTER Fix:  Server rejects refreshToken with HTTP 401 Unauthorized. Legitimate
+            access token works with HTTP 200 OK.
+================================================================================

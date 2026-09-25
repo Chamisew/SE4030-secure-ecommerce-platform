@@ -37,12 +37,8 @@ public class JWTserviceImpl implements JWTservice {
     }
 
 //    // 15 minutes for access token
-//    private static final long ACCESS_TOKEN_EXPIRATION = 15 * 60 * 1000;
-
-    // 2 months (60 days)
-    private static final long ACCESS_TOKEN_EXPIRATION =
-            60L * 24 * 60 * 60 * 1000;
-
+    // V05 Fix: 15 minutes for access token (remediating excessive 60-day lifetime CWE-613)
+    private static final long ACCESS_TOKEN_EXPIRATION = 15 * 60 * 1000;
 
     // 7 days for refresh token
     private static final long REFRESH_TOKEN_EXPIRATION = 7 * 24 * 60 * 60 * 1000;
@@ -51,8 +47,9 @@ public class JWTserviceImpl implements JWTservice {
     @Override
     public String generateToken(Users user) {
         Map<String, Object> claims = new HashMap<>();
-        // Add a single role as well, if you want
         claims.put("role", user.getRole().name());
+        // V05 Fix: Explicit token_type claim to prevent token confusion
+        claims.put("token_type", "access");
 
         // Pass username and roles set to buildToken
         Set<Role> roles = Set.of(user.getRole()); // assuming user has a single Role
@@ -63,13 +60,19 @@ public class JWTserviceImpl implements JWTservice {
     @Override
     public String generateRefreshToken(Users user) {
         Map<String, Object> claims = new HashMap<>();
-        // Optional: keep single role as a convenience
         claims.put("role", user.getRole().name());
+        // V05 Fix: Explicit token_type claim to prevent token confusion
+        claims.put("token_type", "refresh");
 
         // Convert the single Role to a Set to pass to buildToken
         Set<Role> roles = Set.of(user.getRole());
 
         return buildToken(claims, user.getEmail(), roles, REFRESH_TOKEN_EXPIRATION);
+    }
+
+    @Override
+    public String extractTokenType(String token) {
+        return extractClaim(token, claims -> (String) claims.get("token_type"));
     }
 
     //build token

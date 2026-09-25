@@ -242,8 +242,9 @@ public class AuthServiceImpl implements AuthService {
         Users user = usersRepo.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
 
-        // Validate refresh token
-        if (!jwtService.validateToken(refreshTokenReq.getToken(), user)) {
+        // Validate refresh token and ensure token_type is 'refresh' (V05)
+        if (!jwtService.validateToken(refreshTokenReq.getToken(), user) ||
+                !"refresh".equalsIgnoreCase(jwtService.extractTokenType(refreshTokenReq.getToken()))) {
             throw new InvalidTokenException("Refresh token expired or invalid");
         }
 
@@ -532,8 +533,8 @@ public class AuthServiceImpl implements AuthService {
         attemptRepo.save(attempt);
 
 
-        // generate 6-digit OTP
-        String otp = String.format("%06d", new Random().nextInt(1_000_000));
+        // V02 Fix: Use cryptographically strong SecureRandom instead of insecure Random (CWE-330)
+        String otp = String.format("%06d", new java.security.SecureRandom().nextInt(1_000_000));
 
         // Optionally clean previous OTPs
         otpRepository.deleteByUser(user);
@@ -551,7 +552,8 @@ public class AuthServiceImpl implements AuthService {
                 "This code expires in 15 minutes.";
         emailService.sendEmail(user.getEmail(), "Password Reset OTP", body);
 
-        return new ForgetPasswordResponse("OTP sent successfully. Please check your inbox." , otp);
+        // V02 Fix: Do not disclose OTP in the HTTP response body
+        return new ForgetPasswordResponse("OTP sent successfully. Please check your inbox.");
     }
 
 

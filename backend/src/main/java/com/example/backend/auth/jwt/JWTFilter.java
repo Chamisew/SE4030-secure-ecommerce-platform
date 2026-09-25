@@ -45,6 +45,14 @@ public class JWTFilter extends OncePerRequestFilter {
                 UserDetails userDetails = userService.loadUserByUsername(username);
 
                 if (jwtservice.validateToken(token, userDetails)) {
+                    // V05 Fix: Enforce token_type validation to prevent refresh token confusion
+                    String tokenType = jwtservice.extractTokenType(token);
+                    if (!"access".equalsIgnoreCase(tokenType)) {
+                        throw new org.springframework.security.authentication.InsufficientAuthenticationException(
+                                "Invalid token type: refresh tokens cannot be used to authenticate API requests"
+                        );
+                    }
+
                     var claims = jwtservice.extractRoles(token);
                     var authorities = claims.stream().map(org.springframework.security.core.authority.SimpleGrantedAuthority::new).toList();
 

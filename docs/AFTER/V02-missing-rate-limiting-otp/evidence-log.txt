@@ -1,0 +1,46 @@
+================================================================================
+EVIDENCE LOG: V02 - Forgot-Password OTP Disclosure (AFTER FIX)
+================================================================================
+Date: 2026-09-25
+Tester: Member 2 - Sammani Wimalarathna (wimalarathnasammani@gmail.com)
+Target: http://localhost:8080/api/v1/auth/forgot-password
+Branch: fix/B-token-vulns
+Verdict: REMEDIATED (EXPLOIT BLOCKED)
+
+--------------------------------------------------------------------------------
+1. Attack Request: Initiate Password Reset to Intercept OTP
+--------------------------------------------------------------------------------
+Request:
+POST /api/v1/auth/forgot-password
+Content-Type: application/json
+Body:
+{"email": "afterfix_member1_v03@test.com"}
+
+Response Received:
+HTTP Status: 200 OK
+Response Body:
+{"message": "OTP sent successfully. Please check your inbox."}
+
+--------------------------------------------------------------------------------
+2. Field Presence Verification
+--------------------------------------------------------------------------------
+Checked Key: "otp"
+Presence in JSON Response: NOT FOUND / FALSE
+
+Comparison with BEFORE:
+BEFORE Fix:
+  Response Body: {"message": "OTP sent successfully. Please check your inbox.", "otp": "576973"}
+  (Attacker immediately harvested the valid OTP from the HTTP response).
+
+AFTER Fix:
+  Response Body: {"message": "OTP sent successfully. Please check your inbox."}
+  (No OTP field is present in the response DTO or serialized JSON).
+
+--------------------------------------------------------------------------------
+3. PRNG Hardening Verification
+--------------------------------------------------------------------------------
+Source Location: AuthServiceImpl.java:536
+Before: String otp = String.format("%06d", new Random().nextInt(1_000_000)); (CWE-330)
+After:  String otp = String.format("%06d", new java.security.SecureRandom().nextInt(1_000_000));
+Cryptographically secure PRNG ensures generated OTPs cannot be predicted via LCG state recovery.
+================================================================================

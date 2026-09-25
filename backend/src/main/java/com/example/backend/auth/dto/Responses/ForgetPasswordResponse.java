@@ -9,5 +9,4 @@ import lombok.*;
 @Builder
 public class ForgetPasswordResponse {
     private String message;
-    private String otp;
 }
