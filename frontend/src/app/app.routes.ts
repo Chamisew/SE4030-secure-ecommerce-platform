@@ -14,6 +14,11 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
   },
   {
+    path: 'oauth2/redirect',
+    loadComponent: () =>
+      import('./features/auth/pages/oauth2-redirect.component').then(m => m.OAuth2RedirectComponent),
+  },
+  {
     path: '',
     redirectTo: 'auth',
     pathMatch: 'full',
