@@ -1,0 +1,627 @@
+{
+  "meta": {
+    "tool": "Python HTTP Security Scanner (Custom DAST)",
+    "version": "1.0.0",
+    "python_version": "3.13.7 (tags/v3.13.7:bcee1c3, Aug 14 2025, 14:15:11) [MSC v.1944 64 bit (AMD64)]",
+    "target": "http://localhost:8080",
+    "scan_timestamp": "2026-09-25T12:46:59.397055+05:30",
+    "scan_type": "Black-Box Dynamic Application Security Testing (DAST)"
+  },
+  "security_header_audit": [
+    {
+      "endpoint": "/api/v1/products",
+      "http_status": 401,
+      "headers_checked": 8,
+      "headers_present": [
+        "X-Content-Type-Options",
+        "X-Frame-Options",
+        "Cache-Control",
+        "X-XSS-Protection"
+      ],
+      "headers_missing": [
+        "Strict-Transport-Security",
+        "Content-Security-Policy",
+        "Referrer-Policy",
+        "Permissions-Policy"
+      ],
+      "detail": {
+        "X-Content-Type-Options": {
+          "status": "PRESENT",
+          "value": "nosniff"
+        },
+        "X-Frame-Options": {
+          "status": "PRESENT",
+          "value": "DENY"
+        },
+        "Cache-Control": {
+          "status": "PRESENT",
+          "value": "no-cache, no-store, max-age=0, must-revalidate"
+        },
+        "Strict-Transport-Security": {
+          "status": "MISSING",
+          "value": null
+        },
+        "Content-Security-Policy": {
+          "status": "MISSING",
+          "value": null
+        },
+        "Referrer-Policy": {
+          "status": "MISSING",
+          "value": null
+        },
+        "X-XSS-Protection": {
+          "status": "PRESENT",
+          "value": "0"
+        },
+        "Permissions-Policy": {
+          "status": "MISSING",
+          "value": null
+        }
+      },
+      "severity": "MEDIUM"
+    },
+    {
+      "endpoint": "/api/v1/auth/me",
+      "http_status": 500,
+      "headers_checked": 8,
+      "headers_present": [
+        "X-Content-Type-Options",
+        "X-Frame-Options",
+        "Cache-Control",
+        "X-XSS-Protection"
+      ],
+      "headers_missing": [
+        "Strict-Transport-Security",
+        "Content-Security-Policy",
+        "Referrer-Policy",
+        "Permissions-Policy"
+      ],
+      "detail": {
+        "X-Content-Type-Options": {
+          "status": "PRESENT",
+          "value": "nosniff"
+        },
+        "X-Frame-Options": {
+          "status": "PRESENT",
+          "value": "DENY"
+        },
+        "Cache-Control": {
+          "status": "PRESENT",
+          "value": "no-cache, no-store, max-age=0, must-revalidate"
+        },
+        "Strict-Transport-Security": {
+          "status": "MISSING",
+          "value": null
+        },
+        "Content-Security-Policy": {
+          "status": "MISSING",
+          "value": null
+        },
+        "Referrer-Policy": {
+          "status": "MISSING",
+          "value": null
+        },
+        "X-XSS-Protection": {
+          "status": "PRESENT",
+          "value": "0"
+        },
+        "Permissions-Policy": {
+          "status": "MISSING",
+          "value": null
+        }
+      },
+      "severity": "MEDIUM"
+    },
+    {
+      "endpoint": "/",
+      "http_status": 500,
+      "headers_checked": 8,
+      "headers_present": [],
+      "headers_missing": [
+        "X-Content-Type-Options",
+        "X-Frame-Options",
+        "Cache-Control",
+        "Strict-Transport-Security",
+        "Content-Security-Policy",
+        "Referrer-Policy",
+        "X-XSS-Protection",
+        "Permissions-Policy"
+      ],
+      "detail": {
+        "X-Content-Type-Options": {
+          "status": "MISSING",
+          "value": null
+        },
+        "X-Frame-Options": {
+          "status": "MISSING",
+          "value": null
+        },
+        "Cache-Control": {
+          "status": "MISSING",
+          "value": null
+        },
+        "Strict-Transport-Security": {
+          "status": "MISSING",
+          "value": null
+        },
+        "Content-Security-Policy": {
+          "status": "MISSING",
+          "value": null
+        },
+        "Referrer-Policy": {
+          "status": "MISSING",
+          "value": null
+        },
+        "X-XSS-Protection": {
+          "status": "MISSING",
+          "value": null
+        },
+        "Permissions-Policy": {
+          "status": "MISSING",
+          "value": null
+        }
+      },
+      "severity": "HIGH"
+    }
+  ],
+  "unauthenticated_endpoint_scan": [
+    {
+      "method": "GET",
+      "endpoint": "/",
+      "http_status": 500,
+      "accessible": false,
+      "content_length": 162,
+      "body_preview": "{\"status\":500,\"timestamp\":\"2026-09-25T07:16:59.535733200Z\",\"message\":\"Something went wrong: No static resource  for request '/'.\",\"error\":\"Internal Server Error\"}",
+      "severity": "PASS"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/test-email",
+      "http_status": 200,
+      "accessible": true,
+      "content_length": 11,
+      "body_preview": "Email sent!",
+      "severity": "HIGH"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/v1/auth/dev/users",
+      "http_status": 200,
+      "accessible": true,
+      "content_length": 8242,
+      "body_preview": "[{\"id\":\"5ef38f0a-5dca-4db3-8e61-956d21577a79\",\"firstName\":\"Chamila\",\"lastName\":\"Sewmini\",\"email\":\"chamilasewmini1110@gmail.com\",\"password\":\"$2a$10$cO4LT9ElnW8H305BFR5niO5fljVqWCLgOnJGsby33ys6evebtPCEq",
+      "severity": "HIGH"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/v1/products",
+      "http_status": 401,
+      "accessible": false,
+      "content_length": 176,
+      "body_preview": "{\"message\":\"Full authentication is required to access this resource\",\"timestamp\":\"2026-09-25T07:16:59.574016400Z\",\"error\":\"Unauthorized\",\"path\":\"/api/v1/products\",\"status\":401}",
+      "severity": "PASS"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/actuator",
+      "http_status": 500,
+      "accessible": false,
+      "content_length": 178,
+      "body_preview": "{\"status\":500,\"timestamp\":\"2026-09-25T07:16:59.596422900Z\",\"message\":\"Something went wrong: No static resource actuator for request '/actuator'.\",\"error\":\"Internal Server Error\"}",
+      "severity": "PASS"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/actuator/health",
+      "http_status": 500,
+      "accessible": false,
+      "content_length": 192,
+      "body_preview": "{\"status\":500,\"timestamp\":\"2026-09-25T07:16:59.604670500Z\",\"message\":\"Something went wrong: No static resource actuator/health for request '/actuator/health'.\",\"error\":\"Internal Server Error\"}",
+      "severity": "PASS"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/actuator/env",
+      "http_status": 500,
+      "accessible": false,
+      "content_length": 186,
+      "body_preview": "{\"status\":500,\"timestamp\":\"2026-09-25T07:16:59.613417900Z\",\"message\":\"Something went wrong: No static resource actuator/env for request '/actuator/env'.\",\"error\":\"Internal Server Error\"}",
+      "severity": "PASS"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/actuator/beans",
+      "http_status": 500,
+      "accessible": false,
+      "content_length": 190,
+      "body_preview": "{\"status\":500,\"timestamp\":\"2026-09-25T07:16:59.639594400Z\",\"message\":\"Something went wrong: No static resource actuator/beans for request '/actuator/beans'.\",\"error\":\"Internal Server Error\"}",
+      "severity": "PASS"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/actuator/configprops",
+      "http_status": 500,
+      "accessible": false,
+      "content_length": 202,
+      "body_preview": "{\"status\":500,\"timestamp\":\"2026-09-25T07:16:59.648515500Z\",\"message\":\"Something went wrong: No static resource actuator/configprops for request '/actuator/configprops'.\",\"error\":\"Internal Server Error",
+      "severity": "PASS"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/actuator/mappings",
+      "http_status": 500,
+      "accessible": false,
+      "content_length": 196,
+      "body_preview": "{\"status\":500,\"timestamp\":\"2026-09-25T07:16:59.656549400Z\",\"message\":\"Something went wrong: No static resource actuator/mappings for request '/actuator/mappings'.\",\"error\":\"Internal Server Error\"}",
+      "severity": "PASS"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/swagger-ui.html",
+      "http_status": 500,
+      "accessible": false,
+      "content_length": 192,
+      "body_preview": "{\"status\":500,\"timestamp\":\"2026-09-25T07:16:59.664504200Z\",\"message\":\"Something went wrong: No static resource swagger-ui.html for request '/swagger-ui.html'.\",\"error\":\"Internal Server Error\"}",
+      "severity": "PASS"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/swagger-ui/index.html",
+      "http_status": 500,
+      "accessible": false,
+      "content_length": 201,
+      "body_preview": "{\"status\":500,\"timestamp\":\"2026-09-25T07:16:59.686190Z\",\"message\":\"Something went wrong: No static resource swagger-ui/index.html for request '/swagger-ui/index.html'.\",\"error\":\"Internal Server Error\"",
+      "severity": "PASS"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/v3/api-docs",
+      "http_status": 500,
+      "accessible": false,
+      "content_length": 184,
+      "body_preview": "{\"status\":500,\"timestamp\":\"2026-09-25T07:16:59.715179400Z\",\"message\":\"Something went wrong: No static resource v3/api-docs for request '/v3/api-docs'.\",\"error\":\"Internal Server Error\"}",
+      "severity": "PASS"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/v2/api-docs",
+      "http_status": 500,
+      "accessible": false,
+      "content_length": 184,
+      "body_preview": "{\"status\":500,\"timestamp\":\"2026-09-25T07:16:59.748071600Z\",\"message\":\"Something went wrong: No static resource v2/api-docs for request '/v2/api-docs'.\",\"error\":\"Internal Server Error\"}",
+      "severity": "PASS"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api-docs",
+      "http_status": 500,
+      "accessible": false,
+      "content_length": 178,
+      "body_preview": "{\"status\":500,\"timestamp\":\"2026-09-25T07:16:59.755496500Z\",\"message\":\"Something went wrong: No static resource api-docs for request '/api-docs'.\",\"error\":\"Internal Server Error\"}",
+      "severity": "PASS"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/h2-console",
+      "http_status": 500,
+      "accessible": false,
+      "content_length": 182,
+      "body_preview": "{\"status\":500,\"timestamp\":\"2026-09-25T07:16:59.764063300Z\",\"message\":\"Something went wrong: No static resource h2-console for request '/h2-console'.\",\"error\":\"Internal Server Error\"}",
+      "severity": "PASS"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/error",
+      "http_status": 500,
+      "accessible": false,
+      "content_length": 68,
+      "body_preview": "{\"timestamp\":\"2026-09-25T07:16:59.773Z\",\"status\":999,\"error\":\"None\"}",
+      "severity": "PASS"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/env",
+      "http_status": 500,
+      "accessible": false,
+      "content_length": 168,
+      "body_preview": "{\"status\":500,\"timestamp\":\"2026-09-25T07:16:59.784940400Z\",\"message\":\"Something went wrong: No static resource env for request '/env'.\",\"error\":\"Internal Server Error\"}",
+      "severity": "PASS"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/trace",
+      "http_status": 500,
+      "accessible": false,
+      "content_length": 169,
+      "body_preview": "{\"status\":500,\"timestamp\":\"2026-09-25T07:16:59.793660Z\",\"message\":\"Something went wrong: No static resource trace for request '/trace'.\",\"error\":\"Internal Server Error\"}",
+      "severity": "PASS"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/heapdump",
+      "http_status": 500,
+      "accessible": false,
+      "content_length": 175,
+      "body_preview": "{\"status\":500,\"timestamp\":\"2026-09-25T07:16:59.801202Z\",\"message\":\"Something went wrong: No static resource heapdump for request '/heapdump'.\",\"error\":\"Internal Server Error\"}",
+      "severity": "PASS"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/threaddump",
+      "http_status": 500,
+      "accessible": false,
+      "content_length": 182,
+      "body_preview": "{\"status\":500,\"timestamp\":\"2026-09-25T07:16:59.825392700Z\",\"message\":\"Something went wrong: No static resource threaddump for request '/threaddump'.\",\"error\":\"Internal Server Error\"}",
+      "severity": "PASS"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/loggers",
+      "http_status": 500,
+      "accessible": false,
+      "content_length": 176,
+      "body_preview": "{\"status\":500,\"timestamp\":\"2026-09-25T07:16:59.833392900Z\",\"message\":\"Something went wrong: No static resource loggers for request '/loggers'.\",\"error\":\"Internal Server Error\"}",
+      "severity": "PASS"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/metrics",
+      "http_status": 500,
+      "accessible": false,
+      "content_length": 176,
+      "body_preview": "{\"status\":500,\"timestamp\":\"2026-09-25T07:16:59.856427800Z\",\"message\":\"Something went wrong: No static resource metrics for request '/metrics'.\",\"error\":\"Internal Server Error\"}",
+      "severity": "PASS"
+    }
+  ],
+  "authentication_enforcement_check": [
+    {
+      "method": "GET",
+      "endpoint": "/api/v1/auth/me",
+      "http_status": 500,
+      "enforcement": "ENFORCED",
+      "severity": "PASS"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/v1/orders",
+      "http_status": 401,
+      "enforcement": "ENFORCED",
+      "severity": "PASS"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/v1/cart",
+      "http_status": 401,
+      "enforcement": "ENFORCED",
+      "severity": "PASS"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/v1/wishlist",
+      "http_status": 401,
+      "enforcement": "ENFORCED",
+      "severity": "PASS"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/v1/seller/seller-requests",
+      "http_status": 401,
+      "enforcement": "ENFORCED",
+      "severity": "PASS"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/v1/categories",
+      "http_status": 401,
+      "enforcement": "ENFORCED",
+      "severity": "PASS"
+    },
+    {
+      "method": "POST",
+      "endpoint": "/api/v1/orders",
+      "http_status": 401,
+      "enforcement": "ENFORCED",
+      "severity": "PASS"
+    },
+    {
+      "method": "POST",
+      "endpoint": "/api/v1/seller/request",
+      "http_status": 401,
+      "enforcement": "ENFORCED",
+      "severity": "PASS"
+    },
+    {
+      "method": "PATCH",
+      "endpoint": "/api/v1/orders/1/cancel",
+      "http_status": 401,
+      "enforcement": "ENFORCED",
+      "severity": "PASS"
+    },
+    {
+      "method": "DELETE",
+      "endpoint": "/api/v1/cart/clear",
+      "http_status": 401,
+      "enforcement": "ENFORCED",
+      "severity": "PASS"
+    }
+  ],
+  "information_disclosure_check": [
+    {
+      "test_case": "Invalid UUID path parameter",
+      "method": "GET",
+      "endpoint": "/api/v1/products/nonexistent-uuid-12345",
+      "http_status": 401,
+      "disclosed_patterns": [],
+      "body_preview": "{\"message\":\"Full authentication is required to access this resource\",\"timestamp\":\"2026-09-25T07:16:59.969179200Z\",\"error\":\"Unauthorized\",\"path\":\"/api/v1/products/nonexistent-uuid-12345\",\"status\":401}",
+      "severity": "PASS"
+    },
+    {
+      "test_case": "Non-existent resource ID",
+      "method": "GET",
+      "endpoint": "/api/v1/orders/99999",
+      "http_status": 401,
+      "disclosed_patterns": [],
+      "body_preview": "{\"message\":\"Full authentication is required to access this resource\",\"timestamp\":\"2026-09-25T07:16:59.971178700Z\",\"error\":\"Unauthorized\",\"path\":\"/api/v1/orders/99999\",\"status\":401}",
+      "severity": "PASS"
+    },
+    {
+      "test_case": "Malformed JSON body",
+      "method": "POST",
+      "endpoint": "/api/v1/auth/login",
+      "http_status": 500,
+      "disclosed_patterns": [],
+      "body_preview": "{\"status\":500,\"timestamp\":\"2026-09-25T07:16:59.979203800Z\",\"message\":\"Something went wrong: JSON parse error: Unexpected character ('}' (code 125)): was expecting a colon to separate property name and value\",\"error\":\"Internal Server Error\"}",
+      "severity": "PASS"
+    },
+    {
+      "test_case": "Invalid verification token",
+      "method": "GET",
+      "endpoint": "/api/v1/auth/verify-email?token=invalid",
+      "http_status": 400,
+      "disclosed_patterns": [
+        "token"
+      ],
+      "body_preview": "{\"status\":400,\"timestamp\":\"2026-09-25T07:16:59.991485Z\",\"message\":\"Invalid token\",\"error\":\"Bad Request\"}",
+      "severity": "MEDIUM"
+    },
+    {
+      "test_case": "Non-existent route",
+      "method": "GET",
+      "endpoint": "/nonexistent-path-xyzzy",
+      "http_status": 500,
+      "disclosed_patterns": [],
+      "body_preview": "{\"status\":500,\"timestamp\":\"2026-09-25T07:17:00.000652200Z\",\"message\":\"Something went wrong: No static resource nonexistent-path-xyzzy for request '/nonexistent-path-xyzzy'.\",\"error\":\"Internal Server Error\"}",
+      "severity": "PASS"
+    }
+  ],
+  "cors_check": [
+    {
+      "test_origin": "http://localhost:3000",
+      "description": "Legitimate frontend origin",
+      "http_status": 401,
+      "access_control_allow_origin": null,
+      "access_control_allow_credentials": null,
+      "assessment": "Secure - Origin not reflected or correctly restricted",
+      "severity": "PASS"
+    },
+    {
+      "test_origin": "http://evil.com",
+      "description": "Untrusted external origin",
+      "http_status": 401,
+      "access_control_allow_origin": null,
+      "access_control_allow_credentials": null,
+      "assessment": "Secure - Origin not reflected or correctly restricted",
+      "severity": "PASS"
+    },
+    {
+      "test_origin": "https://attacker.example.com",
+      "description": "Attacker-controlled origin",
+      "http_status": 401,
+      "access_control_allow_origin": null,
+      "access_control_allow_credentials": null,
+      "assessment": "Secure - Origin not reflected or correctly restricted",
+      "severity": "PASS"
+    },
+    {
+      "test_origin": "null",
+      "description": "Null origin",
+      "http_status": 401,
+      "access_control_allow_origin": null,
+      "access_control_allow_credentials": null,
+      "assessment": "Secure - Origin not reflected or correctly restricted",
+      "severity": "PASS"
+    }
+  ],
+  "http_method_check": [
+    {
+      "method": "OPTIONS",
+      "endpoint": "/api/v1/products",
+      "http_status": 401,
+      "allow_header": null,
+      "severity": "PASS"
+    },
+    {
+      "method": "TRACE",
+      "endpoint": "/api/v1/products",
+      "http_status": 405,
+      "allow_header": "HEAD, DELETE, POST, GET, OPTIONS, PUT",
+      "severity": "PASS"
+    },
+    {
+      "method": "PUT",
+      "endpoint": "/api/v1/products",
+      "http_status": 401,
+      "allow_header": null,
+      "severity": "PASS"
+    },
+    {
+      "method": "DELETE",
+      "endpoint": "/api/v1/products",
+      "http_status": 401,
+      "allow_header": null,
+      "severity": "PASS"
+    },
+    {
+      "method": "OPTIONS",
+      "endpoint": "/api/v1/auth/login",
+      "http_status": 200,
+      "allow_header": "POST,OPTIONS",
+      "severity": "INFO"
+    },
+    {
+      "method": "TRACE",
+      "endpoint": "/api/v1/auth/login",
+      "http_status": 405,
+      "allow_header": "HEAD, DELETE, POST, GET, OPTIONS, PUT",
+      "severity": "PASS"
+    },
+    {
+      "method": "PUT",
+      "endpoint": "/api/v1/auth/login",
+      "http_status": 500,
+      "allow_header": null,
+      "severity": "PASS"
+    },
+    {
+      "method": "DELETE",
+      "endpoint": "/api/v1/auth/login",
+      "http_status": 500,
+      "allow_header": null,
+      "severity": "PASS"
+    },
+    {
+      "method": "OPTIONS",
+      "endpoint": "/",
+      "http_status": 500,
+      "allow_header": null,
+      "severity": "PASS"
+    },
+    {
+      "method": "TRACE",
+      "endpoint": "/",
+      "http_status": 405,
+      "allow_header": "HEAD, DELETE, POST, GET, OPTIONS, PUT",
+      "severity": "PASS"
+    },
+    {
+      "method": "PUT",
+      "endpoint": "/",
+      "http_status": 500,
+      "allow_header": null,
+      "severity": "PASS"
+    },
+    {
+      "method": "DELETE",
+      "endpoint": "/",
+      "http_status": 500,
+      "allow_header": null,
+      "severity": "PASS"
+    }
+  ],
+  "summary": {
+    "total_checks": 57,
+    "findings": 6,
+    "passed": 51,
+    "errors": 0
+  }
+}

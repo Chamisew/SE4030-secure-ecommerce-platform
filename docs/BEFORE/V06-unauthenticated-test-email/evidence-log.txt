@@ -1,0 +1,65 @@
+================================================================================
+BEFORE-FIX EVIDENCE LOG: V06 (Unauthenticated Test-Email Endpoint Side-Effect)
+Timestamp: 2026-09-25T12:11:17+05:30
+Target URL: http://localhost:8080/test-email
+================================================================================
+
+--- 1. UNAUTHENTICATED REQUEST ---
+GET /test-email HTTP/1.1
+Host: localhost:8080
+User-Agent: curl/8.9.1
+Accept: */*
+[Authorization Header: NONE]
+
+--- RESPONSE ---
+HTTP/1.1 200 OK
+Content-Type: text/plain;charset=UTF-8
+Content-Length: 11
+Date: Fri, 25 Sep 2026 06:41:17 GMT
+
+Email sent!
+
+[OBSERVATION]:
+Notice that Spring Security default response headers (X-Content-Type-Options: nosniff,
+X-Frame-Options: DENY, Cache-Control: no-cache, no-store) are completely absent.
+This proves that the request completely bypassed the Spring Security filter chain.
+
+--- 2. APPLICATION DEBUG LOGS (DispatcherServlet) ---
+2026-09-25T12:11:17.417+05:30 DEBUG 17344 --- [backend] [io-8080-exec-10] o.s.web.servlet.DispatcherServlet        : GET "/test-email", parameters={}
+2026-09-25T12:11:17.417+05:30 DEBUG 17344 --- [backend] [io-8080-exec-10] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.example.backend.auth.controller.TestEmailController#testEmail()
+2026-09-25T12:11:17.425+05:30 DEBUG 17344 --- [backend] [io-8080-exec-10] m.m.a.RequestResponseBodyMethodProcessor : Using 'text/plain', given [*/*] and supported [text/plain, */*, application/json, application/*+json]
+2026-09-25T12:11:17.425+05:30 DEBUG 17344 --- [backend] [io-8080-exec-10] m.m.a.RequestResponseBodyMethodProcessor : Writing ["Email sent!"]
+2026-09-25T12:11:17.427+05:30 DEBUG 17344 --- [backend] [io-8080-exec-10] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+
+--- 3. SMTP SINK SERVER LOGS ---
+SMTP sink listening on localhost:1025
+[Connection from 127.0.0.1 - Recipient: faresayman5453@gmail.com, Subject: "Test Email", Body: "This is a test email."]
+Status: 250 OK: Message accepted
+
+--- 4. COMPARISON: PROTECTED /api/** ENDPOINT SECURITY ENFORCEMENT ---
+GET /api/v1/categories HTTP/1.1
+Host: localhost:8080
+[Authorization Header: NONE]
+
+--- RESPONSE ---
+HTTP/1.1 401 Unauthorized
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 0
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: 0
+X-Frame-Options: DENY
+Content-Type: application/json
+Content-Length: 178
+Date: Fri, 25 Sep 2026 06:42:24 GMT
+
+{"message":"Full authentication is required to access this resource","timestamp":"2026-09-25T06:42:24.881578700Z","error":"Unauthorized","path":"/api/v1/categories","status":401}
+
+[OBSERVATION]:
+Endpoints matching /api/** enforce authentication and attach Spring Security headers.
+Endpoints outside /api/** (such as /test-email) completely bypass the security filter chain.
+
+================================================================================
+RESULT: CONFIRMED VULNERABILITY (V06)
+Status: HTTP 200 OK without authentication; external side effect executed (outbound email sent); Spring Security filter chain completely bypassed.
+================================================================================

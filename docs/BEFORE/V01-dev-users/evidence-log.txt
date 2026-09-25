@@ -1,0 +1,89 @@
+================================================================================
+BEFORE-FIX EVIDENCE LOG: V01 (Unauthenticated Access to Dev Users Endpoint)
+Timestamp: 2026-09-24T12:18:40+05:30
+Target URL: http://localhost:8080/api/v1/auth/dev/users
+================================================================================
+
+--- REQUEST ---
+GET /api/v1/auth/dev/users HTTP/1.1
+Host: localhost:8080
+User-Agent: curl/8.9.1
+Accept: */*
+[Authorization Header: NONE]
+
+--- RESPONSE ---
+HTTP/1.1 200 OK
+Content-Type: application/json
+Transfer-Encoding: chunked
+Date: Thu, 24 Sep 2026 06:48:40 GMT
+
+[
+  {
+    "id": "5ef38f0a-5dca-4db3-8e61-956d21577a79",
+    "firstName": "Chamila",
+    "lastName": "Sewmini",
+    "email": "chamilasewmini1110@gmail.com",
+    "password": "$2a$10$REDACTED_BCRYPT_HASH_USER_1",
+    "role": "ROLE_USER",
+    "enabled": true,
+    "emailVerified": true,
+    "verificationCode": null,
+    "resetPasswordToken": null,
+    "resetTokenExpiry": null,
+    "createdAt": "2026-09-24T05:38:39.084972",
+    "updatedAt": "2026-09-24T05:39:18.851895",
+    "profileImageUrl": null,
+    "accountNonExpired": true,
+    "accountNonLocked": true,
+    "authorities": [{"authority": "ROLE_USER"}],
+    "credentialsNonExpired": true,
+    "username": "chamilasewmini1110@gmail.com"
+  },
+  {
+    "id": "3128bcf2-ba7c-4037-a198-96527958b8a5",
+    "firstName": "Admin",
+    "lastName": "User",
+    "email": "admin_test@example.com",
+    "password": "$2a$10$REDACTED_BCRYPT_HASH_ADMIN",
+    "role": "ROLE_ADMIN",
+    "enabled": true,
+    "emailVerified": true,
+    "verificationCode": null,
+    "resetPasswordToken": null,
+    "resetTokenExpiry": null,
+    "createdAt": "2026-09-24T11:17:39.601758",
+    "updatedAt": "2026-09-24T11:17:52.790334",
+    "profileImageUrl": null,
+    "accountNonExpired": true,
+    "accountNonLocked": true,
+    "authorities": [{"authority": "ROLE_ADMIN"}],
+    "credentialsNonExpired": true,
+    "username": "admin_test@example.com"
+  },
+  {
+    "id": "0f2f7ee0-8aca-4568-903f-6115542668ef",
+    "firstName": "Direct",
+    "lastName": "Seller",
+    "email": "seller_direct@example.com",
+    "password": "$2a$10$REDACTED_BCRYPT_HASH_SELLER",
+    "role": "ROLE_SELLER",
+    "enabled": true,
+    "emailVerified": true,
+    "verificationCode": null,
+    "resetPasswordToken": null,
+    "resetTokenExpiry": null,
+    "createdAt": "2026-09-24T11:21:57.471669",
+    "updatedAt": "2026-09-24T11:22:37.468673",
+    "profileImageUrl": null,
+    "accountNonExpired": true,
+    "accountNonLocked": true,
+    "authorities": [{"authority": "ROLE_SELLER"}],
+    "credentialsNonExpired": true,
+    "username": "seller_direct@example.com"
+  }
+]
+
+================================================================================
+RESULT: CONFIRMED VULNERABILITY (V01)
+Status: HTTP 200 OK (Unauthenticated access permitted, 5 user records dumped including password hashes)
+================================================================================

