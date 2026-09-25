@@ -42,4 +42,5 @@ public interface AuthService {
     //dev only for testing
     List<Users> getAllUsers();
 
+    LoginResponse oauth2Exchange(OAuth2ExchangeRequest request);
 }

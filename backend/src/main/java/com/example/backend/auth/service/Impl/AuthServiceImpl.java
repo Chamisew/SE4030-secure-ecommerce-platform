@@ -590,4 +590,66 @@ public class AuthServiceImpl implements AuthService {
 
         return new MessageResponse("Password reset successfully");
     }
+
+    /**
+     * Authenticate or provision user via OAuth2/OIDC token exchange.
+     * Generates signed application JWT access token and refresh token.
+     *
+     * @param request OAuth2ExchangeRequest
+     * @return LoginResponse with access token and refresh token
+     */
+    @Override
+    @Transactional
+    public LoginResponse oauth2Exchange(com.example.backend.auth.dto.Requests.OAuth2ExchangeRequest request) {
+        String email = request.getEmail();
+        java.util.Optional<Users> userOptional = usersRepo.findByEmail(email);
+        Users user;
+        if (userOptional.isPresent()) {
+            user = userOptional.get();
+            if (request.getPicture() != null && user.getProfileImageUrl() == null) {
+                user.setProfileImageUrl(request.getPicture());
+            }
+            if (!user.isEmailVerified()) {
+                user.setEmailVerified(true);
+            }
+            user.setEnabled(true);
+            user = usersRepo.save(user);
+        } else {
+            String name = request.getName();
+            String firstName = "User";
+            String lastName = "Google";
+            if (name != null && !name.isBlank()) {
+                String[] parts = name.trim().split("\\s+", 2);
+                firstName = parts[0];
+                if (parts.length > 1) {
+                    lastName = parts[1];
+                }
+            }
+            user = Users.builder()
+                    .email(email)
+                    .firstName(firstName)
+                    .lastName(lastName)
+                    .password(passwordEncoder.encode(java.util.UUID.randomUUID().toString()))
+                    .role(com.example.backend.entity.Role.ROLE_USER)
+                    .emailVerified(true)
+                    .enabled(true)
+                    .profileImageUrl(request.getPicture())
+                    .build();
+            user = usersRepo.save(user);
+        }
+
+        String accessToken = jwtService.generateToken(user);
+        String refreshToken = jwtService.generateRefreshToken(user);
+
+        return LoginResponse.builder()
+                .message("OAuth2 authentication successful")
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .email(user.getEmail())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .profileImageUrl(user.getProfileImageUrl())
+                .role(user.getRole())
+                .build();
+    }
 }
