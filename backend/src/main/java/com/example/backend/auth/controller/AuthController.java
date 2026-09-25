@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -265,17 +266,20 @@ public class AuthController {
 
     /**
      * Development/test endpoint: list all users.
+     * Restricted to ROLE_ADMIN only and redacts sensitive password hashes (V01).
      *
-     * Exposes all users in the system — intended for dev/test only and should be removed or secured for production.
-     *
-     * @return a list of user entities
+     * @return a list of user entities with sensitive credentials masked
      */
     @GetMapping("/dev/users")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<Users>> listUsers() {
-        return ResponseEntity.ok((authService).getAllUsers());
+        List<Users> users = authService.getAllUsers();
+        // V01 Fix: Never expose BCrypt password hashes or tokens even to administrators
+        users.forEach(u -> {
+            u.setPassword("[REDACTED]");
+            u.setVerificationCode(null);
+            u.setResetPasswordToken(null);
+        });
+        return ResponseEntity.ok(users);
     }
-
-
-
-
 }

@@ -32,11 +32,20 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain apiFilterChain(HttpSecurity http) {
        return http
-                .securityMatcher("/api/**")
+                // V06 Fix: Remove narrow securityMatcher("/api/**") so all application routes default to secure
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        // public auth endpoints
-                        .requestMatchers("/api/v1/auth/**").permitAll()
+                        // V01 Fix: Replace overly permissive wildcard "/api/v1/auth/**" with explicit public endpoints
+                        .requestMatchers(
+                                "/api/v1/auth/register",
+                                "/api/v1/auth/login",
+                                "/api/v1/auth/verify-email",
+                                "/api/v1/auth/forgot-password",
+                                "/api/v1/auth/reset-password",
+                                "/api/v1/auth/refresh-token"
+                        ).permitAll()
+                        // V01 & V06 Fix: Restrict development and test utilities to ADMIN only
+                        .requestMatchers("/api/v1/auth/dev/**", "/test-email", "/test-email/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

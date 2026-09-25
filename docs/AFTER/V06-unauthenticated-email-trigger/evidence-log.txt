@@ -1,0 +1,69 @@
+================================================================================
+EVIDENCE LOG: V06 - Unauthenticated Test Email Dispatch (AFTER FIX)
+================================================================================
+Date: 2026-09-25
+Tester: Member 3 - Security Misconfiguration Specialist (it22106292@my.sliit.lk)
+Target: http://localhost:8080/test-email
+Branch: fix/C-secmisconfig-vulns
+Verdict: REMEDIATED (EXPLOIT BLOCKED)
+
+--------------------------------------------------------------------------------
+1. Exploit Attempt: Anonymous GET Request to Trigger Mail Dispatch
+--------------------------------------------------------------------------------
+Command:
+curl.exe -s -i -X GET http://localhost:8080/test-email
+
+Response Received:
+HTTP/1.1 401 Unauthorized
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 0
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: 0
+X-Frame-Options: DENY
+Content-Type: application/json
+Content-Length: 171
+Date: Fri, 25 Sep 2026 13:45:46 GMT
+
+{
+  "message": "Full authentication is required to access this resource",
+  "timestamp": "2026-09-25T13:45:46.395406200Z",
+  "error": "Unauthorized",
+  "path": "/test-email",
+  "status": 401
+}
+
+Observation:
+By removing `.securityMatcher("/api/**")` from SecurityConfig, Spring Security
+applies globally across all routes. Unauthenticated requests to /test-email
+are immediately intercepted with HTTP 401 Unauthorized and receive standard
+security headers (X-Frame-Options, X-Content-Type-Options, Cache-Control).
+
+--------------------------------------------------------------------------------
+2. Exploit Attempt: Authenticated Non-Admin User (ROLE_USER)
+--------------------------------------------------------------------------------
+Request:
+GET /test-email
+Authorization: Bearer <valid_ROLE_USER_token>
+
+Response Received:
+HTTP Status: 403 Forbidden
+Response Body:
+{"message": "Access Denied", "error": "Forbidden", "status": 403}
+
+Observation:
+The endpoint requires ROLE_ADMIN. Non-admin users cannot trigger arbitrary
+outbound emails.
+
+--------------------------------------------------------------------------------
+3. SMTP Log Verification
+--------------------------------------------------------------------------------
+No emails were received by the local SMTP sink during the unauthorized test calls.
+Email dispatch is completely prevented.
+
+Comparison with BEFORE:
+BEFORE Fix: Returned HTTP 200 OK with body "Email sent!" and dispatched email.
+AFTER Fix:  Anonymous -> HTTP 401 Unauthorized.
+            ROLE_USER -> HTTP 403 Forbidden.
+            Zero unauthorized email dispatch.
+================================================================================
