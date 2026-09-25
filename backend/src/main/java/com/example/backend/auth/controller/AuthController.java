@@ -54,10 +54,9 @@ public class AuthController {
             @RequestParam String lastName,
             @RequestParam String email,
             @RequestParam String password,
-            @RequestParam(required = false) Role role,
             @RequestPart(value = "file", required = false) MultipartFile file) throws IOException {
 
-        SignUpRequest dto = new SignUpRequest(firstName, lastName, email, password, role);
+        SignUpRequest dto = new SignUpRequest(firstName, lastName, email, password);
         RegisterResponse response = authService.register(dto, file);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);

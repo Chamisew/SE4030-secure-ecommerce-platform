@@ -1,0 +1,60 @@
+================================================================================
+EVIDENCE LOG: V03 - Client-Controlled Role Assignment (AFTER FIX)
+================================================================================
+Date: 2026-09-25
+Tester: Member 1 - Chamila Sewmini (chamilasewmini2@gmail.com)
+Target: http://localhost:8080/api/v1/auth/register
+Branch: fix/A-registration-vulns
+Verdict: REMEDIATED (EXPLOIT BLOCKED)
+
+--------------------------------------------------------------------------------
+1. Attack Request: Registration with Injected ROLE_ADMIN Payload
+--------------------------------------------------------------------------------
+Command:
+curl.exe -s -i -X POST http://localhost:8080/api/v1/auth/register \
+  -F "firstName=AfterFix" \
+  -F "lastName=MemberOne" \
+  -F "email=afterfix_member1_v03@test.com" \
+  -F "password=Password123!" \
+  -F "role=ROLE_ADMIN"
+
+Response Received:
+HTTP/1.1 201 Created
+Content-Type: application/json
+
+{"message":"User registered. Please check your email for verification.","profileImageUrl":null}
+
+--------------------------------------------------------------------------------
+2. Database Verification: Assigned Role Inspection
+--------------------------------------------------------------------------------
+Query:
+SELECT email, role, enabled, email_verified FROM users WHERE email='afterfix_member1_v03@test.com';
+
+Result:
+email: afterfix_member1_v03@test.com
+role: ROLE_USER
+
+Observation:
+Even though the client explicitly supplied `role=ROLE_ADMIN`, the server-side
+controller stripped the parameter and enforced a server-side default of `ROLE_USER`.
+
+--------------------------------------------------------------------------------
+3. Authorization Verification: Admin-Only Endpoint Access Attempt
+--------------------------------------------------------------------------------
+User Login:
+POST /api/v1/auth/login
+Credentials: afterfix_member1_v03@test.com / Password123!
+Role in Token Claims: ROLE_USER
+
+Access Attempt:
+GET /api/v1/seller/seller-requests
+Authorization: Bearer <token_of_afterfix_member1_v03>
+
+Response Received:
+Access Denied ("Something went wrong: Access Denied")
+HTTP Status: Access Denied / Forbidden
+
+Comparison with BEFORE:
+BEFORE Fix: Returned HTTP 200 OK with sensitive seller registration requests list.
+AFTER Fix:  Access Denied. Privilege escalation is completely eliminated.
+================================================================================

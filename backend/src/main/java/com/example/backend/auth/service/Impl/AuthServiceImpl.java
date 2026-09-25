@@ -82,8 +82,9 @@ public class AuthServiceImpl implements AuthService {
         if (usersRepo.findByEmail(signUpRequest.getEmail()).isPresent()) {
             throw new EmailAlreadyUsedException("The new email is already in use.");
         }
-        // Determine a role: default to USER if null (because if I want to create new roles for devs (usage only ex. adding category(admin) , adding product(seller))
-        Role userRole = signUpRequest.getRole() != null ? signUpRequest.getRole() : Role.ROLE_USER;
+        // Secure default: all newly registered accounts are assigned ROLE_USER.
+        // Role promotion to SELLER or ADMIN requires explicit administrative action.
+        Role userRole = Role.ROLE_USER;
     // create new user
     Users user = Users.builder()
             .firstName(signUpRequest.getFirstName())
@@ -130,7 +131,8 @@ public class AuthServiceImpl implements AuthService {
             "\n\nIf you did not register, ignore this email.";
     emailService.sendEmail(user.getEmail(), "Verify your account", body);
 
-    return new RegisterResponse("User registered. Please check your email for verification." ,token);
+    // V04 Fix: Do not disclose verificationToken in the HTTP response body
+    return new RegisterResponse("User registered. Please check your email for verification.");
 }
 
 

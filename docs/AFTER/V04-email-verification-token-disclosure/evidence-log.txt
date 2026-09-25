@@ -1,0 +1,54 @@
+================================================================================
+EVIDENCE LOG: V04 - Email Verification Token Disclosure (AFTER FIX)
+================================================================================
+Date: 2026-09-25
+Tester: Member 1 - Chamila Sewmini (chamilasewmini2@gmail.com)
+Target: http://localhost:8080/api/v1/auth/register
+Branch: fix/A-registration-vulns
+Verdict: REMEDIATED (EXPLOIT BLOCKED)
+
+--------------------------------------------------------------------------------
+1. Attack Request: Registration to Observe Response Body for Disclosed Token
+--------------------------------------------------------------------------------
+Command:
+curl.exe -s -i -X POST http://localhost:8080/api/v1/auth/register \
+  -F "firstName=AfterFix" \
+  -F "lastName=MemberOne" \
+  -F "email=afterfix_member1_v03@test.com" \
+  -F "password=Password123!"
+
+Response Received:
+HTTP/1.1 201 Created
+Vary: Origin
+Vary: Access-Control-Request-Method
+Vary: Access-Control-Request-Headers
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 0
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: 0
+X-Frame-Options: DENY
+Content-Type: application/json
+Transfer-Encoding: chunked
+
+{"message":"User registered. Please check your email for verification.","profileImageUrl":null}
+
+--------------------------------------------------------------------------------
+2. Field Presence Verification
+--------------------------------------------------------------------------------
+Checked Key: "verificationToken"
+Presence in JSON Response: NOT FOUND / NULL
+
+Comparison with BEFORE:
+BEFORE Fix: Response returned:
+  {"message":"User registered. Please check your email for verification.",
+   "verificationToken":"19df273f-1d37-4d92-bf3c-4467d5e1ee7e", ...}
+  (Attacker immediately extracted the token without access to the victim's email).
+
+AFTER Fix: Response returns:
+  {"message":"User registered. Please check your email for verification.",
+   "profileImageUrl":null}
+  (No verification token is ever leaked to the client HTTP response).
+
+The verification token is only reachable through the verified out-of-band email channel.
+================================================================================
