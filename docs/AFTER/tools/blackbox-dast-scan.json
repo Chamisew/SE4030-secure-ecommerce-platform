@@ -1,0 +1,467 @@
+{
+  "meta": {
+    "tool": "Python HTTP Security Scanner (Custom DAST)",
+    "version": "1.0.0",
+    "python_version": "3.13.7 (tags/v3.13.7:bcee1c3, Aug 14 2025, 14:15:11) [MSC v.1944 64 bit (AMD64)]",
+    "target": "http://localhost:8080",
+    "scan_timestamp": "2026-09-26T10:04:07.609657+05:30",
+    "scan_type": "Black-Box Dynamic Application Security Testing (DAST) - AFTER FIX"
+  },
+  "security_header_audit": [
+    {
+      "endpoint": "/api/v1/products",
+      "http_status": 401,
+      "present_headers": {
+        "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "DENY",
+        "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+        "X-XSS-Protection": "0"
+      },
+      "missing_headers": [
+        "Strict-Transport-Security",
+        "Content-Security-Policy",
+        "Referrer-Policy",
+        "Permissions-Policy"
+      ],
+      "severity": "MEDIUM"
+    },
+    {
+      "endpoint": "/",
+      "http_status": 401,
+      "present_headers": {
+        "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "DENY",
+        "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
+        "X-XSS-Protection": "0"
+      },
+      "missing_headers": [
+        "Strict-Transport-Security",
+        "Content-Security-Policy",
+        "Referrer-Policy",
+        "Permissions-Policy"
+      ],
+      "severity": "HIGH"
+    }
+  ],
+  "unauthenticated_endpoint_scan": [
+    {
+      "method": "GET",
+      "endpoint": "/",
+      "http_status": 401,
+      "accessible": false,
+      "content_length": 161,
+      "severity": "PASS",
+      "finding": null
+    },
+    {
+      "method": "GET",
+      "endpoint": "/test-email",
+      "http_status": 401,
+      "accessible": false,
+      "content_length": 171,
+      "severity": "PASS",
+      "finding": "Correctly rejected (HTTP 401 Unauthorized) \u2014 Remediated V06"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/v1/auth/dev/users",
+      "http_status": 401,
+      "accessible": false,
+      "content_length": 182,
+      "severity": "PASS",
+      "finding": "Correctly protected (HTTP 401 Unauthorized) \u2014 Remediated V01"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/v1/products",
+      "http_status": 401,
+      "accessible": false,
+      "content_length": 176,
+      "severity": "PASS",
+      "finding": null
+    },
+    {
+      "method": "GET",
+      "endpoint": "/actuator",
+      "http_status": 401,
+      "accessible": false,
+      "content_length": 169,
+      "severity": "PASS",
+      "finding": null
+    },
+    {
+      "method": "GET",
+      "endpoint": "/actuator/health",
+      "http_status": 401,
+      "accessible": false,
+      "content_length": 176,
+      "severity": "PASS",
+      "finding": null
+    },
+    {
+      "method": "GET",
+      "endpoint": "/actuator/env",
+      "http_status": 401,
+      "accessible": false,
+      "content_length": 173,
+      "severity": "PASS",
+      "finding": null
+    },
+    {
+      "method": "GET",
+      "endpoint": "/actuator/beans",
+      "http_status": 401,
+      "accessible": false,
+      "content_length": 175,
+      "severity": "PASS",
+      "finding": null
+    },
+    {
+      "method": "GET",
+      "endpoint": "/actuator/configprops",
+      "http_status": 401,
+      "accessible": false,
+      "content_length": 181,
+      "severity": "PASS",
+      "finding": null
+    },
+    {
+      "method": "GET",
+      "endpoint": "/actuator/mappings",
+      "http_status": 401,
+      "accessible": false,
+      "content_length": 178,
+      "severity": "PASS",
+      "finding": null
+    },
+    {
+      "method": "GET",
+      "endpoint": "/swagger-ui.html",
+      "http_status": 401,
+      "accessible": false,
+      "content_length": 176,
+      "severity": "PASS",
+      "finding": null
+    },
+    {
+      "method": "GET",
+      "endpoint": "/swagger-ui/index.html",
+      "http_status": 401,
+      "accessible": false,
+      "content_length": 179,
+      "severity": "PASS",
+      "finding": null
+    },
+    {
+      "method": "GET",
+      "endpoint": "/v3/api-docs",
+      "http_status": 401,
+      "accessible": false,
+      "content_length": 172,
+      "severity": "PASS",
+      "finding": null
+    },
+    {
+      "method": "GET",
+      "endpoint": "/v2/api-docs",
+      "http_status": 401,
+      "accessible": false,
+      "content_length": 172,
+      "severity": "PASS",
+      "finding": null
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api-docs",
+      "http_status": 401,
+      "accessible": false,
+      "content_length": 169,
+      "severity": "PASS",
+      "finding": null
+    },
+    {
+      "method": "GET",
+      "endpoint": "/h2-console",
+      "http_status": 401,
+      "accessible": false,
+      "content_length": 171,
+      "severity": "PASS",
+      "finding": null
+    },
+    {
+      "method": "GET",
+      "endpoint": "/error",
+      "http_status": 401,
+      "accessible": false,
+      "content_length": 166,
+      "severity": "PASS",
+      "finding": null
+    },
+    {
+      "method": "GET",
+      "endpoint": "/env",
+      "http_status": 401,
+      "accessible": false,
+      "content_length": 164,
+      "severity": "PASS",
+      "finding": null
+    },
+    {
+      "method": "GET",
+      "endpoint": "/trace",
+      "http_status": 401,
+      "accessible": false,
+      "content_length": 166,
+      "severity": "PASS",
+      "finding": null
+    },
+    {
+      "method": "GET",
+      "endpoint": "/heapdump",
+      "http_status": 401,
+      "accessible": false,
+      "content_length": 169,
+      "severity": "PASS",
+      "finding": null
+    },
+    {
+      "method": "GET",
+      "endpoint": "/threaddump",
+      "http_status": 401,
+      "accessible": false,
+      "content_length": 171,
+      "severity": "PASS",
+      "finding": null
+    },
+    {
+      "method": "GET",
+      "endpoint": "/loggers",
+      "http_status": 401,
+      "accessible": false,
+      "content_length": 168,
+      "severity": "PASS",
+      "finding": null
+    },
+    {
+      "method": "GET",
+      "endpoint": "/metrics",
+      "http_status": 401,
+      "accessible": false,
+      "content_length": 168,
+      "severity": "PASS",
+      "finding": null
+    }
+  ],
+  "authentication_enforcement_check": [
+    {
+      "method": "GET",
+      "endpoint": "/api/v1/auth/me",
+      "http_status": 401,
+      "enforced": true,
+      "severity": "PASS"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/v1/orders",
+      "http_status": 401,
+      "enforced": true,
+      "severity": "PASS"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/v1/cart",
+      "http_status": 401,
+      "enforced": true,
+      "severity": "PASS"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/v1/wishlist",
+      "http_status": 401,
+      "enforced": true,
+      "severity": "PASS"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/v1/seller/seller-requests",
+      "http_status": 401,
+      "enforced": true,
+      "severity": "PASS"
+    },
+    {
+      "method": "GET",
+      "endpoint": "/api/v1/categories",
+      "http_status": 401,
+      "enforced": true,
+      "severity": "PASS"
+    },
+    {
+      "method": "POST",
+      "endpoint": "/api/v1/orders",
+      "http_status": 401,
+      "enforced": true,
+      "severity": "PASS"
+    },
+    {
+      "method": "POST",
+      "endpoint": "/api/v1/seller/request",
+      "http_status": 401,
+      "enforced": true,
+      "severity": "PASS"
+    },
+    {
+      "method": "PATCH",
+      "endpoint": "/api/v1/orders/1/cancel",
+      "http_status": 401,
+      "enforced": true,
+      "severity": "PASS"
+    },
+    {
+      "method": "DELETE",
+      "endpoint": "/api/v1/cart/clear",
+      "http_status": 401,
+      "enforced": true,
+      "severity": "PASS"
+    }
+  ],
+  "information_disclosure_check": [
+    {
+      "test_case": "GET /api/v1/products/invalid-uuid",
+      "http_status": 401,
+      "disclosed_patterns": [],
+      "severity": "PASS"
+    },
+    {
+      "test_case": "GET /api/v1/products/00000000-0000-0000-0000-000000000000",
+      "http_status": 401,
+      "disclosed_patterns": [],
+      "severity": "PASS"
+    },
+    {
+      "test_case": "POST /api/v1/auth/login",
+      "http_status": 500,
+      "disclosed_patterns": [],
+      "severity": "PASS"
+    },
+    {
+      "test_case": "GET /api/v1/auth/verify-email?token=invalid-token-here",
+      "http_status": 400,
+      "disclosed_patterns": [
+        "token"
+      ],
+      "severity": "MEDIUM"
+    },
+    {
+      "test_case": "GET /non-existent-route-404-probe",
+      "http_status": 401,
+      "disclosed_patterns": [],
+      "severity": "PASS"
+    }
+  ],
+  "cors_check": [
+    {
+      "test_origin": "http://localhost:3000",
+      "acao_header": null,
+      "acac_header": null,
+      "severity": "PASS"
+    },
+    {
+      "test_origin": "http://evil.com",
+      "acao_header": null,
+      "acac_header": null,
+      "severity": "PASS"
+    },
+    {
+      "test_origin": "https://attacker.example.com",
+      "acao_header": null,
+      "acac_header": null,
+      "severity": "PASS"
+    },
+    {
+      "test_origin": "null",
+      "acao_header": null,
+      "acac_header": null,
+      "severity": "PASS"
+    }
+  ],
+  "http_method_check": [
+    {
+      "method": "OPTIONS",
+      "endpoint": "/api/v1/products",
+      "http_status": 401,
+      "severity": "PASS"
+    },
+    {
+      "method": "OPTIONS",
+      "endpoint": "/api/v1/auth/login",
+      "http_status": 200,
+      "severity": "PASS"
+    },
+    {
+      "method": "OPTIONS",
+      "endpoint": "/",
+      "http_status": 401,
+      "severity": "PASS"
+    },
+    {
+      "method": "TRACE",
+      "endpoint": "/api/v1/products",
+      "http_status": 401,
+      "severity": "PASS"
+    },
+    {
+      "method": "TRACE",
+      "endpoint": "/api/v1/auth/login",
+      "http_status": 401,
+      "severity": "PASS"
+    },
+    {
+      "method": "TRACE",
+      "endpoint": "/",
+      "http_status": 401,
+      "severity": "PASS"
+    },
+    {
+      "method": "PUT",
+      "endpoint": "/api/v1/products",
+      "http_status": 401,
+      "severity": "PASS"
+    },
+    {
+      "method": "PUT",
+      "endpoint": "/api/v1/auth/login",
+      "http_status": 500,
+      "severity": "PASS"
+    },
+    {
+      "method": "PUT",
+      "endpoint": "/",
+      "http_status": 401,
+      "severity": "PASS"
+    },
+    {
+      "method": "DELETE",
+      "endpoint": "/api/v1/products",
+      "http_status": 401,
+      "severity": "PASS"
+    },
+    {
+      "method": "DELETE",
+      "endpoint": "/api/v1/auth/login",
+      "http_status": 500,
+      "severity": "PASS"
+    },
+    {
+      "method": "DELETE",
+      "endpoint": "/",
+      "http_status": 401,
+      "severity": "PASS"
+    }
+  ],
+  "summary": {
+    "total_checks": 56,
+    "findings": 3,
+    "passed": 53,
+    "errors": 0
+  }
+}
