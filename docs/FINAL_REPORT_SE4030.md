@@ -61,24 +61,46 @@ This project conducts a comprehensive, multi-phase security evaluation and remed
 
 ## 2. Security Testing Methodology & Tooling
 
-To ensure scientific rigor, both white-box (static/dependency) and black-box (dynamic/runtime) testing methodologies were applied prior to code remediation.
+To ensure scientific rigor, both white-box (static/dependency) and black-box (dynamic/runtime) testing methodologies were applied **before and after** code remediation. This two-phase approach provides empirical evidence that the identified vulnerabilities were successfully eliminated.
 
-### 2.1 Static Application Security Testing (SAST)
+### 2.1 Static Application Security Testing (SAST) — White-Box
 * **Tool Used**: Pattern-based Regex SAST and Semgrep / Sonar-aligned static rule evaluation.
 * **Target**: `backend/src/main/java/` (145+ Java classes).
-* **Findings**:
+* **BEFORE-Fix Findings**:
   - Identified usage of weak pseudo-random number generators (`new Random()`) in `AuthServiceImpl.java:493`.
   - Identified hardcoded credentials and wildcards in `SecurityConfig.java:38`.
   - Flagged unrestricted `MultipartFile` consumption without size or extension checks in `SellerServiceImpl.java:75`.
+* **AFTER-Fix Results**: All critical SAST findings resolved. See `docs/AFTER/tools/whitebox-sast-report.md`.
 
-### 2.2 Dynamic Application Security Testing (DAST)
-* **Tool Used**: Automated Blackbox DAST Scanner & OWASP ZAP (Zed Attack Proxy).
+### 2.2 Dynamic Application Security Testing (DAST) — Black-Box
+
+#### 2.2.1 Custom Automated DAST Scanner
+* **Tool Used**: Custom Python-based automated DAST scanner targeting known API attack surfaces.
 * **Target**: `http://localhost:8080/` (REST API).
-* **Key Findings**:
+* **BEFORE-Fix Key Findings**:
   - `High`: Unauthenticated administrative user enumeration via `GET /api/v1/auth/dev/users`.
   - `High`: Denial-of-Service and mail flooding via unauthenticated `GET /test-email`.
   - `Medium`: Sensitive OTP and token disclosure in HTTP response bodies (`/forgot-password` and `/register`).
   - `Low`: Missing security headers (`X-Frame-Options`, `Content-Security-Policy`).
+* **AFTER-Fix Results**: All High and Medium findings eliminated. See `docs/AFTER/tools/blackbox-dast-report.md`.
+
+#### 2.2.2 OWASP ZAP (Zed Attack Proxy) — Industry-Standard DAST
+* **Tool Used**: OWASP ZAP 2.17.0 (by Checkmarx) — the world's most widely-used open-source DAST tool.
+* **Scan Type**: Automated Scan (Traditional Spider + Passive Scan + Active Scan).
+* **Target**: `http://localhost:8080/` — 6 public API endpoints seeded, 12 URLs discovered.
+* **AFTER-Fix Results**:
+
+  | Severity        | Count | Status   |
+  |-----------------|-------|----------|
+  | High            | **0** | ✅ Clean  |
+  | Medium          | **0** | ✅ Clean  |
+  | Low             | **12**| Accepted |
+  | Informational   | **144**| Noted   |
+
+  - **Zero** SQL Injection, XSS, RCE, Path Traversal, or SSRF vulnerabilities detected.
+  - **12 Low-risk** alerts: Spring Boot default error message disclosure (cosmetic, addressed via `@ControllerAdvice` best practice).
+  - **144 Informational**: User-Agent fuzzing — application responded consistently (no differential behavior).
+* **Report Artifacts**: `docs/AFTER/tools/zap-after-report.html`, `docs/AFTER/tools/zap-scan-report.md`.
 
 ### 2.3 Software Composition Analysis (SCA)
 * **Tool Used**: OWASP Dependency-Check (v12.1.0).
